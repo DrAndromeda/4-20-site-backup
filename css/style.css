@@ -547,7 +547,8 @@ main li { margin-bottom: 6px; }
   }
   .nav.open { display: flex; }
   .nav > a { padding: 10px 14px; width: 100%; }
-  .nav-dropdown-content { position: static; box-shadow: none; }
+  .nav-dropdown-content { display: none; position: static; box-shadow: none; }
+  .nav-dropdown.open .nav-dropdown-content { display: block; }
   .nav-dropdown-content a { color: rgba(255,255,255,0.8); border-color: rgba(255,255,255,0.1); }
   .nav-dropdown-content a:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
