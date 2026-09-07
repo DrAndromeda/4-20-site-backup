@@ -749,13 +749,6 @@ main li { margin-bottom: 6px; }
     border: none !important;
     box-shadow: none !important;
   }
-  .nav-dropdown > a::after {
-    content: "▾";
-    font-size: 12px;
-    transition: transform 0.3s ease;
-    margin-left: 8px;
-  }
-  .nav-dropdown.open > a::after { transform: rotate(180deg); }
 
   /* neutralise desktop hover on touch */
   .nav-dropdown:hover .nav-dropdown-content { display: none !important; }
