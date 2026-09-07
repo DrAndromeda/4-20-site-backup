@@ -1,0 +1,23 @@
+.tabs article .desc,
+.tabs article .feedback-form,
+.tabs article .map{width:100%;overflow:hidden;box-sizing:border-box;}
+.header .righted{display:none;}
+.mobile-search{display:block;}
+button.nav-toggle{display:none;}
+.menu-trigger{display:block;}
+a.arrow{display:inline-block;}
+.tel{display:inline-block;margin:0px 5px -6px;}
+.tel a{display:none;color:#000;font-size:18px;}
+.tel a.active{display:block}
+.header .wrapper{text-align:center;}
+.righted{display:inline-block;float:none;}
+@media (max-width:475px){.righted{width:180px !important;}
+.nav-toggle{margin-top:5px;margin-left:5px;}
+}
+.tabs-head li,
+.tabs-head ul{display:block}
+.tabs-head li,
+footer .articles article{text-align:center}
+.tabs-head li{width:100%;padding:20px 0;}
+.tabs-head .wrapper{padding:0}
+.tabs .wrapper{padding:0}

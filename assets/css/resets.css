@@ -1,0 +1,7 @@
+@media screen and (max-width:700px){
+	div#vk_comments {width:100% !important;}
+	div#vk_comments>iframe {width:100% !important;}
+	div.fb-comments>span {height:auto !important; width:100% !important;}
+	div.fb-comments>span>iframe {height:auto !important; width:100% !important;}
+	.question-bottom>.wrapper>div:nth-child(3) {width:auto !important; max-width:400px;}
+}
