@@ -36,6 +36,12 @@
 <a class="logo" href="./">
         4-20.com.ua
       </a>
+<div class="header-search">
+<form class="h-search" action="find.html" method="get" onsubmit="return false;">
+<input name="search" id="searchInput" class="h-search__field" type="text" placeholder="🔍 Найти..." value="" oninput="searchPages(this.value)"/>
+<div class="search-results" id="searchResults"></div>
+</form>
+</div>
 <button aria-label="Меню" class="hamburger" id="hamburger">
 <span></span><span></span><span></span>
 </button>
@@ -91,54 +97,11 @@
 </nav>
 </div>
 </header>
-<!-- ===== СЛАЙДЕР ===== -->
-<div class="slider" id="mainSlider">
-<div class="slider-track" id="sliderTrack">
-<div class="slider-slide" style="background-image: linear-gradient(135deg, rgba(27,67,50,0.7), rgba(45,106,79,0.5)), url('assets/img/vlijanie-marihyani.jpg');">
-<div class="slider-content">
-<h2>Все о марихуане</h2>
-<p>От курения до лечебных свойств — полная информация о каннабисе в Украине</p>
-</div>
-</div>
-<div class="slider-slide" style="background-image: linear-gradient(135deg, rgba(27,67,50,0.7), rgba(45,106,79,0.5)), url('assets/img/vse-o-marihyane.png');">
-<div class="slider-content">
-<h2>Выращивание конопли</h2>
-<p>Семена, оборудование, грунт и полное руководство от семян до урожая</p>
-</div>
-</div>
-<div class="slider-slide" style="background-image: linear-gradient(135deg, rgba(27,67,50,0.7), rgba(45,106,79,0.5)), url('assets/img/vred_marihyani.png');">
-<div class="slider-content">
-<h2>Вред и польза</h2>
-<p>Научные исследования, влияние на организм, медицинское применение</p>
-</div>
-</div>
-<div class="slider-slide" style="background-image: linear-gradient(135deg, rgba(27,67,50,0.7), rgba(45,106,79,0.5)), url('assets/img/%D0%BC%D0%B0%D1%80%D0%B8%D1%85%D1%83%D0%B0%D0%BD%D0%B0.png');">
-<div class="slider-content">
-<h2>Закон Украины</h2>
-<p>Правовой статус марихуаны, ответственность и мировой опыт легализации</p>
-</div>
-</div>
-</div>
-<div class="slider-dots" id="sliderDots"></div>
-<button class="slider-btn slider-prev" onclick="prevSlide()">‹</button>
-<button class="slider-btn slider-next" onclick="nextSlide()">›</button>
-</div>
-<section class="hero">
-<div class="container">
-<h1>Все о марихуане в Украине</h1>
-<p>Факты, исследования, выращивание, влияние на организм — полная информация о каннабисе</p>
+<section class="intro intro_2">
+<div class="wrapper">
+<div class="intro__slogan intro__slogan_2">Все о марихуане в Украине</div>
 </div>
 </section>
-<!-- ===== ПОИСК ===== -->
-<div class="search-box container" style="text-align:center;">
-<div style="position:relative;display:inline-block;width:100%;max-width:420px;">
-<input id="searchInput" oninput="searchPages(this.value)" placeholder="🔍 Поиск по сайту..." type="text"/>
-<div class="search-results" id="searchResults"></div>
-</div>
-</div>
-<nav class="breadcrumbs">
-<div class="container"><span>Главная</span></div>
-</nav>
 <main>
 <div class="container">
 <section class="text-main">
@@ -354,40 +317,6 @@
       document.querySelectorAll('.reviews-nav button').forEach(function(btn, idx) {
         btn.classList.toggle('active', idx === n - 1);
       });
-    }
-    
-    // ===== SLIDER =====
-    let currentSlide = 0;
-    const sliderTrack = document.getElementById('sliderTrack');
-    const slides = document.querySelectorAll('.slider-slide');
-    const dotsContainer = document.getElementById('sliderDots');
-    
-    if (slides.length > 0) {
-      // Create dots
-      for (let i = 0; i < slides.length; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'slider-dot' + (i === 0 ? ' active' : '');
-        dot.onclick = function() { goToSlide(i); };
-        dotsContainer.appendChild(dot);
-      }
-      
-      function goToSlide(n) {
-        currentSlide = n;
-        sliderTrack.style.transform = 'translateX(-' + (n * 100) + '%)';
-        document.querySelectorAll('.slider-dot').forEach(function(d, i) {
-          d.classList.toggle('active', i === n);
-        });
-      }
-      
-      window.nextSlide = function() {
-        goToSlide((currentSlide + 1) % slides.length);
-      };
-      window.prevSlide = function() {
-        goToSlide((currentSlide - 1 + slides.length) % slides.length);
-      };
-      
-      // Auto-advance
-      setInterval(nextSlide, 5000);
     }
     
     // ===== SEARCH =====
