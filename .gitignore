@@ -1,0 +1,10 @@
+# MODX core (old backup)
+/core/
+# OS files
+.DS_Store
+Thumbs.db
+# Temp
+/tmp/
+/manager/
+/connectors/
+/setup/

@@ -1,4 +1,2 @@
 User-agent: *
 Allow: /
-
-Sitemap: https://4-20.com.ua/sitemap.xml
