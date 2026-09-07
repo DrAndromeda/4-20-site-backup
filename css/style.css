@@ -83,7 +83,27 @@ img { max-width: 100%; height: auto; border-radius: 12px; }
 .nav > a:hover, .nav > a.active { background: #ffdc2e !important; color: #000000 !important; border-color: #000000 !important; text-shadow: none !important; font-weight: 900 !important; box-shadow: 0 3px 8px rgba(255,220,46,0.4) !important; border-width: 1px !important; }
 
 .nav-dropdown { position: relative; }
-.nav-dropdown > a { padding-right: 6px !important; }
+.nav-dropdown > a {
+  color: #ffffff !important;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 900;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px #000000;
+  border: 1px solid #ffffff !important;
+  background: #000000 !important;
+  box-shadow: 0 2px 6px rgba(255,255,255,0.15) !important;
+  text-decoration: none;
+}
+.nav-dropdown > a:hover, .nav-dropdown > a:focus {
+  background: #ffdc2e !important;
+  color: #000000 !important;
+  border-color: #000000 !important;
+  text-shadow: none !important;
+  box-shadow: 0 3px 8px rgba(255,220,46,0.4) !important;
+}
 .nav-dropdown-content {
   display: none;
   position: absolute;
