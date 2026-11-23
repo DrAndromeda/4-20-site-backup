@@ -1,0 +1,27 @@
+---
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+interface Props { lang: Lang; items: { q: string; a: string }[] }
+const { lang, items } = Astro.props;
+const t = useTranslations(lang);
+---
+{items.length > 0 && (
+  <section class="faq" aria-labelledby="faq-h">
+    <h2 id="faq-h">{t('ui.faq')}</h2>
+    {items.map((it) => (
+      <details>
+        <summary>{it.q}</summary>
+        <p>{it.a}</p>
+      </details>
+    ))}
+  </section>
+)}
+<style>
+  .faq { margin-block: 48px; max-width: 74ch; }
+  details { border-bottom: 1px solid var(--border); }
+  summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; align-items: center; min-height: 56px; padding: 12px 0; font: 700 1.05rem/1.35 var(--font-head); }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; font-size: 1.5rem; color: var(--brand-dark); transition: transform .2s; flex: none; }
+  details[open] summary::after { transform: rotate(45deg); }
+  details p { margin: 0 0 16px; color: var(--text-2); }
+</style>

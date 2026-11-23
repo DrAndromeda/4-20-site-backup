@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: CCBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+
+Sitemap: https://4-20.com.ua/sitemap-index.xml

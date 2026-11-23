@@ -1,0 +1,99 @@
+---
+import '../styles/global.css';
+import { LOCALES, LANG_META, type Lang } from '../i18n/ui';
+import { localePath, useTranslations } from '../i18n/utils';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import AgeGate from '../components/AgeGate.astro';
+import CookieConsent from '../components/CookieConsent.astro';
+
+interface Props {
+  lang: Lang;
+  /** Language-neutral path, e.g. '/' or '/cannabinoids/thc/' */
+  path: string;
+  title: string;
+  description: string;
+  jsonLd?: object | object[];
+  ogImage?: string;
+  noindex?: boolean;
+  /** Languages this page exists in (hreflang + switcher). Defaults to all. */
+  langs?: Lang[];
+  ogType?: 'website' | 'article';
+  /** Set when the page already shows the medical disclaimer in its body. */
+  pageHasDisclaimer?: boolean;
+}
+const { lang, path, title, description, jsonLd, ogImage = '/og-default.png', noindex, langs = [...LOCALES], ogType = 'website', pageHasDisclaimer = false } = Astro.props;
+const t = useTranslations(lang);
+const site = Astro.site!.origin;
+const canonical = site + localePath(lang, path);
+const fullTitle = path === '/' ? `${title} | 4-20` : `${title} — 4-20`;
+const ld = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#4bd12e" />
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    <link rel="canonical" href={canonical} />
+    {langs.map((l) => <link rel="alternate" hreflang={l} href={site + localePath(l, path)} />)}
+    <link rel="alternate" hreflang="x-default" href={site + localePath(langs.includes('en') ? 'en' : langs[0], path)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="4-20" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={LANG_META[lang].ogLocale} />
+    {langs.filter((l) => l !== lang).map((l) => <meta property="og:locale:alternate" content={LANG_META[l].ogLocale} />)}
+    <meta property="og:image" content={site + ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    {ld.map((o) => <script type="application/ld+json" set:html={JSON.stringify(o)} />)}
+  </head>
+  <body>
+    <div class="progress" data-progress aria-hidden="true"></div>
+    <a class="skip-link" href="#main">{t('nav.skip')}</a>
+    <Header lang={lang} path={path} langs={langs} />
+    <main id="main"><slot /></main>
+    <Footer lang={lang} showDisclaimer={!pageHasDisclaimer} />
+    <AgeGate lang={lang} />
+    <CookieConsent lang={lang} />
+    <script>
+      const root = document.documentElement;
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      // header shadow + reading progress
+      const hdr = document.querySelector('.hdr');
+      const bar = document.querySelector<HTMLElement>('[data-progress]');
+      const art = document.querySelector<HTMLElement>('article.art');
+      let tick = false;
+      const onScroll = () => {
+        tick = false;
+        hdr?.classList.toggle('is-scrolled', window.scrollY > 8);
+        if (bar && art) {
+          const r = art.getBoundingClientRect();
+          const total = r.height - window.innerHeight;
+          bar.style.transform = `scaleX(${total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 0})`;
+        }
+      };
+      addEventListener('scroll', () => { if (!tick) { tick = true; requestAnimationFrame(onScroll); } }, { passive: true });
+      onScroll();
+
+      // scroll reveal (only for elements still below the fold)
+      if (!reduce && 'IntersectionObserver' in window) {
+        const targets = document.querySelectorAll<HTMLElement>('.body h2, .body .ct, .body .tg, .body .gc, .body .cd, .body figure, .faq, .src, .rel, .rel li, .cards li, .pc');
+        const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+        targets.forEach((el, n) => {
+          if (el.getBoundingClientRect().top < window.innerHeight * 0.95) return;
+          if (el.matches('li')) el.style.setProperty('--i', String(Array.from(el.parentElement!.children).indexOf(el)));
+          el.classList.add('reveal'); io.observe(el);
+        });
+      }
+    </script>
+  </body>
+</html>

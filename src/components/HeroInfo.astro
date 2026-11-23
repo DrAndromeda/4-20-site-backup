@@ -1,0 +1,26 @@
+---
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+interface Props { lang: Lang; h1: string; answer: string; eyebrow?: string; updated?: Date }
+const { lang, h1, answer, eyebrow, updated } = Astro.props;
+const t = useTranslations(lang);
+const fmt = updated ? new Intl.DateTimeFormat(lang, { dateStyle: 'long' }).format(updated) : '';
+---
+<header class="hi">
+  <slot name="breadcrumbs" />
+  {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+  <h1 class="enter" style="--d:1">{h1}</h1>
+  <div class="hi__answer enter" style="--d:2" data-direct-answer>
+    <span class="hi__label">{t('ui.answer')}</span>
+    <p>{answer}</p>
+  </div>
+  {updated && <p class="hi__meta">{t('ui.updated')}: <time datetime={updated.toISOString().slice(0, 10)}>{fmt}</time></p>}
+</header>
+<style>
+  .hi { padding-block: clamp(28px, 5vw, 56px) 8px; }
+  .hi h1 { font-size: clamp(2rem, 4.8vw, 3.25rem); margin: 12px 0 20px; max-width: 26ch; }
+  .hi__answer { max-width: 68ch; padding: 18px 20px; border-left: 5px solid var(--brand); background: var(--bg-alt); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+  .hi__label { font: 700 .75rem/1 var(--font-head); letter-spacing: .12em; text-transform: uppercase; color: var(--brand-dark); }
+  .hi__answer p { margin: 6px 0 0; font-size: 1.1rem; line-height: 1.6; }
+  .hi__meta { margin: 14px 0 0; color: var(--text-2); font-size: .875rem; }
+</style>

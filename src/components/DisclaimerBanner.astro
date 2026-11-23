@@ -1,0 +1,20 @@
+---
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+interface Props { lang: Lang }
+const t = useTranslations(Astro.props.lang);
+---
+<aside class="disc" role="note" aria-label={t('disclaimer.title')}>
+  <span class="disc__icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg>
+  </span>
+  <p><strong>{t('disclaimer.title')}</strong>{t('disclaimer.text')}</p>
+</aside>
+<style>
+  .disc { display: flex; gap: 12px; align-items: flex-start; max-width: 74ch; margin-block: 8px 28px; padding: 12px 14px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; color: var(--text-2); font-size: .85rem; line-height: 1.55; }
+  .disc__icon { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--warn-border) 22%, transparent); color: var(--warn-border); margin-top: 1px; }
+  .disc__icon svg { width: 18px; height: 18px; }
+  .disc p { margin: 0; }
+  .disc strong { color: var(--text); font-weight: 700; margin-right: .5em; }
+  .disc strong::after { content: '·'; margin-left: .5em; color: var(--text-2); }
+</style>

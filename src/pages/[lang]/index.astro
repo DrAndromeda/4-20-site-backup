@@ -1,0 +1,83 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getEntry } from 'astro:content';
+import { LOCALES, type Lang } from '../../i18n/ui';
+import thcSvg from '../../assets/structures/thc.svg?raw';
+import { localePath, useTranslations } from '../../i18n/utils';
+
+export function getStaticPaths() {
+  return LOCALES.map((lang) => ({ params: { lang } }));
+}
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+
+const icons: Record<string, string> = {
+  cannabinoids: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="8" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 9l3 7M16 8l-3 8M8.5 7.5l7-1"/></svg>',
+  terpenes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3.5 4 5.5 6.8 5.5 10a5.5 5.5 0 0 1-11 0C6.5 9.800 8.500 7 12 3z"/><path d="M12 19c-1.700 0-3-1.300-3-3"/></svg>',
+  growing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9"/><path d="M12 12c0-4 2.500-6.500 7-6.500 0 4-2.500 6.500-7 6.500z"/><path d="M12 15c0-3-2-5-6-5 0 3.200 2 5 6 5z"/></svg>',
+  law: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0L5 7zM19 7l-3 7a3 3 0 0 0 6 0l-3-7z"/></svg>',
+};
+const sections = await Promise.all(
+  (['cannabinoids', 'terpenes', 'growing', 'law'] as const).map(async (key) => {
+    const e = await getEntry('pages', `${lang}/${key}`);
+    return { key, href: `/${key}/`, desc: e?.data.description ?? '' };
+  }),
+);
+
+const jsonLd = [
+  { '@context': 'https://schema.org', '@type': 'WebSite', name: '4-20', url: `https://4-20.com.ua/${lang}/`, inLanguage: lang, description: t('home.description') },
+  { '@context': 'https://schema.org', '@type': 'Organization', name: '4-20', url: 'https://4-20.com.ua/' },
+];
+---
+<Base lang={lang} path="/" title={t('home.title')} description={t('home.description')} jsonLd={jsonLd}>
+  <section class="hero">
+    <span class="hero__blob hero__blob--a" aria-hidden="true"></span>
+    <span class="hero__blob hero__blob--b" aria-hidden="true"></span>
+    <div class="hero__mol" aria-hidden="true" set:html={thcSvg} />
+    <div class="container hero__in">
+      <p class="eyebrow enter" style="--d:0">{t('site.tagline')}</p>
+      <h1 class="enter" style="--d:1">{t('home.h1')}</h1>
+      <p class="hero__answer enter" style="--d:2">{t('home.answer')}</p>
+      <a class="btn enter" style="--d:3" href={localePath(lang, '/about/')}>{t('home.cta')} →</a>
+    </div>
+  </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <ul class="cards">
+        {sections.map(({ key, href, desc }) => (
+          <li>
+            <a class="card-link" href={localePath(lang, href)}>
+              <span class="card-link__icon" aria-hidden="true" set:html={icons[key]} />
+              <h2 class="card-link__title">{t(`nav.${key}`)}</h2>
+              <span class="card-link__desc">{desc}</span>
+              <span class="card-link__go" aria-hidden="true"></span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { position: relative; overflow: hidden; isolation: isolate; padding-block: clamp(64px, 11vw, 140px); background: var(--bg); }
+  .hero__in { position: relative; }
+  .hero h1 { margin: 16px 0 20px; max-width: 14ch; font-size: clamp(2.6rem, 7vw, 5rem); background: linear-gradient(120deg, var(--text) 35%, var(--brand-dark)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  @media (prefers-color-scheme: dark) { .hero h1 { background-image: linear-gradient(120deg, var(--text) 40%, var(--brand)); } }
+  .hero__answer { font-size: clamp(1.1rem, 2vw, 1.3rem); color: var(--text-2); max-width: 58ch; margin-bottom: 28px; }
+  .hero__blob { position: absolute; z-index: -1; border-radius: 50%; filter: blur(70px); opacity: .5; pointer-events: none; }
+  .hero__blob--a { width: 520px; height: 520px; right: -120px; top: -160px; background: color-mix(in srgb, var(--brand) 55%, transparent); animation: drift-a 16s ease-in-out infinite alternate; }
+  .hero__blob--b { width: 380px; height: 380px; left: -140px; bottom: -180px; background: color-mix(in srgb, var(--brand-light) 40%, transparent); animation: drift-b 20s ease-in-out infinite alternate; }
+  @keyframes drift-a { to { transform: translate(-60px, 50px) scale(1.12); } }
+  @keyframes drift-b { to { transform: translate(70px, -40px) scale(1.1); } }
+  .hero__mol { position: absolute; z-index: -1; right: max(2vw, 0px); top: 50%; width: min(520px, 58vw); color: var(--brand); opacity: .16; transform: translateY(-50%) rotate(-8deg); animation: float 9s ease-in-out infinite alternate; pointer-events: none; }
+  .hero__mol :global(svg) { width: 100%; height: auto; }
+  .hero__mol :global(path[class^='bond']) { stroke: currentColor !important; }
+  .hero__mol :global(path[class^='atom']) { fill: currentColor !important; stroke: none !important; }
+  .hero__mol :global(rect) { display: none; }
+  @keyframes float { to { transform: translateY(-54%) rotate(-3deg); } }
+  .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); }
+  .card-link { min-height: 220px; padding: 26px; }
+  .card-link__title { font-size: 1.45rem; }
+</style>

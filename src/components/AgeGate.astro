@@ -1,0 +1,50 @@
+---
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+interface Props { lang: Lang }
+const t = useTranslations(Astro.props.lang);
+---
+<!-- Progressive enhancement: hidden unless JS finds no stored confirmation. Content stays crawlable. -->
+<dialog class="age" id="age-gate" aria-labelledby="age-title" data-denied={t('age.denied')}>
+  <div class="age__box">
+    <div class="age__badge" aria-hidden="true">18+</div>
+    <h2 id="age-title">{t('age.title')}</h2>
+    <p>{t('age.text')}</p>
+    <div class="age__actions">
+      <button class="btn" type="button" data-age-yes>{t('age.yes')}</button>
+      <button class="btn btn--ghost" type="button" data-age-no>{t('age.no')}</button>
+    </div>
+    <p class="age__denied" data-age-msg hidden></p>
+  </div>
+</dialog>
+<style>
+  .age { border: 0; padding: 0; background: transparent; max-width: 100vw; max-height: 100dvh; width: 100%; height: 100%; }
+  .age::backdrop { background: rgb(8 18 8 / 88%); backdrop-filter: blur(10px); }
+  .age[open] { display: grid; place-items: center; padding: var(--gutter); }
+  .age__box { width: min(440px, 100%); background: var(--surface); color: var(--text); border-radius: 20px; padding: 32px 28px; text-align: center; box-shadow: var(--shadow); }
+  .age__badge { width: 72px; height: 72px; margin: 0 auto 16px; display: grid; place-items: center; border-radius: 50%; background: var(--brand); color: var(--brand-ink); font: 800 1.5rem/1 var(--font-head); }
+  .age__box h2 { font-size: 1.6rem; }
+  .age__box p { color: var(--text-2); }
+  .age__actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+  .age__denied { margin-top: 16px; color: #b3261e; font-weight: 600; }
+</style>
+<script>
+  const KEY = 'age-ok';
+  const dlg = document.getElementById('age-gate') as HTMLDialogElement | null;
+  let ok = false;
+  try { ok = localStorage.getItem(KEY) === '1'; } catch {}
+  if (dlg && !ok) {
+    dlg.showModal();
+    dlg.addEventListener('cancel', (e) => e.preventDefault()); // Esc must not bypass the gate
+    dlg.querySelector('[data-age-yes]')?.addEventListener('click', () => {
+      try { localStorage.setItem(KEY, '1'); } catch {}
+      dlg.close();
+    });
+    dlg.querySelector('[data-age-no]')?.addEventListener('click', () => {
+      const msg = dlg.querySelector<HTMLElement>('[data-age-msg]')!;
+      msg.textContent = dlg.dataset.denied ?? '';
+      msg.hidden = false;
+      dlg.querySelectorAll('button').forEach((b) => ((b as HTMLButtonElement).disabled = true));
+    });
+  }
+</script>

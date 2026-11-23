@@ -1,0 +1,27 @@
+---
+import type { Lang } from '../i18n/ui';
+import { localePath, useTranslations } from '../i18n/utils';
+interface Props { lang: Lang; items: { slug: string; title: string; description: string }[]; heading?: 'related' | 'children' }
+const { lang, items, heading = 'related' } = Astro.props;
+const t = useTranslations(lang);
+---
+{items.length > 0 && (
+  <aside class="rel" aria-labelledby="rel-h">
+    <h2 id="rel-h">{heading === 'children' ? t('ui.inSection') : t('ui.related')}</h2>
+    <ul>
+      {items.map((it) => (
+        <li>
+          <a class="card-link" href={localePath(lang, '/' + it.slug)}>
+            <strong class="card-link__title">{it.title}</strong>
+            <span class="card-link__desc">{it.description}</span>
+            <span class="card-link__go" aria-hidden="true"></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}
+<style>
+  .rel { margin-block: 48px; }
+  .rel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); }
+</style>

@@ -1,0 +1,43 @@
+---
+/** THC potency / serving calculator. Pure client-side; the result is shown only after JS runs. */
+import type { Lang } from '../i18n/ui';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const L: Record<Lang, Record<string, string>> = {
+  en: { w: 'Weight of material (g)', p: 'THC % on the label', a: 'THCA % on the label (optional)', s: 'Number of servings', mg: 'Total THC available', per: 'Per serving', note: 'Estimate only. THCA converts at about 87.7% (mass ratio 314.46 / 358.48), and real losses in cooking or heating are higher. Labels can be inaccurate. Not a dosing recommendation.', r: 'Calculate' },
+  ru: { w: 'Масса материала (г)', p: 'THC, % по этикетке', a: 'THCA, % по этикетке (необязательно)', s: 'Число порций', mg: 'Всего THC', per: 'На одну порцию', note: 'Только оценка. THCA превращается в THC примерно на 87,7 % (отношение масс 314,46 / 358,48), а реальные потери при нагреве больше. Данные на этикетках бывают неточными. Это не рекомендация по дозировке.', r: 'Рассчитать' },
+  uk: { w: 'Маса матеріалу (г)', p: 'THC, % за етикеткою', a: 'THCA, % за етикеткою (необов’язково)', s: 'Кількість порцій', mg: 'Усього THC', per: 'На одну порцію', note: 'Лише оцінка. THCA перетворюється на THC приблизно на 87,7 % (відношення мас 314,46 / 358,48), а реальні втрати під час нагрівання більші. Дані на етикетках бувають неточними. Це не рекомендація щодо дозування.', r: 'Розрахувати' },
+  es: { w: 'Peso del material (g)', p: '% de THC en la etiqueta', a: '% de THCA en la etiqueta (opcional)', s: 'Número de porciones', mg: 'THC total disponible', per: 'Por porción', note: 'Solo una estimación. El THCA se convierte en THC en torno al 87,7 % (relación de masas 314,46 / 358,48) y las pérdidas reales al calentar son mayores. Las etiquetas pueden ser inexactas. No es una recomendación de dosis.', r: 'Calcular' },
+};
+const t = L[lang];
+---
+<form class="pc" data-pc data-per={t.per} data-mg={t.mg} onsubmit="return false">
+  <label>{t.w}<input name="w" type="number" min="0" step="0.01" inputmode="decimal" value="1" /></label>
+  <label>{t.p}<input name="p" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="0" /></label>
+  <label>{t.a}<input name="a" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="0" /></label>
+  <label>{t.s}<input name="s" type="number" min="1" step="1" inputmode="numeric" value="1" /></label>
+  <button class="btn" type="submit">{t.r}</button>
+  <p class="pc__out" aria-live="polite" data-out></p>
+  <p class="pc__note">{t.note}</p>
+</form>
+<style>
+  .pc { display: grid; gap: 14px; max-width: 460px; margin: 28px 0; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  .pc label { display: grid; gap: 6px; font-weight: 600; font-size: .95rem; }
+  .pc input { min-height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font: inherit; background: var(--bg); color: var(--text); }
+  .pc__out { margin: 0; font: 700 1.1rem/1.5 var(--font-head); min-height: 1.5em; }
+  .pc__note { margin: 0; color: var(--text-2); font-size: .85rem; }
+</style>
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-pc]').forEach((f) => {
+    const out = f.querySelector<HTMLElement>('[data-out]')!;
+    const calc = () => {
+      const v = (n: string) => Math.max(0, parseFloat((f.elements.namedItem(n) as HTMLInputElement).value) || 0);
+      const mg = v('w') * 1000 * (v('p') + v('a') * 0.877) / 100;
+      const per = mg / Math.max(1, Math.floor(v('s')));
+      out.textContent = `${f.dataset.mg}: ${mg.toFixed(0)} mg · ${f.dataset.per}: ${per.toFixed(1)} mg`;
+    };
+    f.addEventListener('submit', calc);
+    f.addEventListener('input', calc);
+    calc();
+  });
+</script>

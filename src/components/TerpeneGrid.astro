@@ -1,0 +1,39 @@
+---
+interface Terpene { name: string; slug?: string; aroma: string; found: string; note?: string; color?: string }
+import type { Lang } from '../i18n/ui';
+import { localePath, useTranslations } from '../i18n/utils';
+interface Props { lang: Lang; items: Terpene[] }
+const { lang, items } = Astro.props;
+const tr = useTranslations(lang);
+---
+<ul class="tg">
+  {items.map((t) => (
+    <li style={`--c:${t.color ?? 'var(--brand)'}`}>
+      <span class="tg__dot" aria-hidden="true"></span>
+      <h3>{t.slug ? <a class="tg__link" href={localePath(lang, '/terpenes/' + t.slug)}>{t.name}</a> : t.name}</h3>
+      <p class="tg__aroma">{t.aroma}</p>
+      <p class="tg__found">{t.found}</p>
+      {t.note && <p class="tg__note">{t.note}</p>}
+      {t.slug && <span class="card-link__go tg__go" aria-hidden="true"></span>}
+    </li>
+  ))}
+</ul>
+<style>
+  .tg { list-style: none; margin: 28px 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); }
+  .tg li { position: relative; padding: 20px; border: 1px solid var(--border); border-top: 4px solid var(--c); border-radius: var(--radius); background: var(--surface); }
+  .tg__dot { position: absolute; right: 16px; top: 16px; width: 14px; height: 14px; border-radius: 50%; background: var(--c); }
+  .tg h3 { margin: 0 0 6px; }
+  .tg li:has(.tg__link) { transition: transform .15s, border-color .15s, box-shadow .15s; box-shadow: var(--shadow); }
+  .tg li:has(.tg__link):hover { transform: translateY(-2px); border-color: var(--brand); }
+  .tg__link { color: var(--link); text-decoration: underline; }
+  .tg__link::after { content: ''; position: absolute; inset: 0; } /* whole card clickable */
+  .tg li { display: flex; flex-direction: column; }
+  .tg li:has(.tg__link):hover .tg__go { color: var(--link); background: color-mix(in srgb, var(--brand) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 70%, transparent); }
+  .tg li:has(.tg__link):hover .tg__go::before { transform: rotate(0); }
+  .tg__go { top: 14px; right: 14px; }
+  .tg li:has(.tg__link) .tg__dot { display: none; }
+  .tg li:has(.tg__link) h3 { padding-right: 48px; }
+  .tg p { margin: 0 0 6px; font-size: .92rem; }
+  .tg__aroma { font-weight: 600; }
+  .tg__found, .tg__note { color: var(--text-2); }
+</style>

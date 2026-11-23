@@ -1,0 +1,182 @@
+---
+import { getEntry, getCollection } from 'astro:content';
+import Base from './Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import HeroInfo from '../components/HeroInfo.astro';
+import FAQBlock from '../components/FAQBlock.astro';
+import SourceCitation from '../components/SourceCitation.astro';
+import RelatedArticles from '../components/RelatedArticles.astro';
+import DisclaimerBanner from '../components/DisclaimerBanner.astro';
+import { localePath, useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /** Language-neutral path with leading and trailing slash, e.g. '/cannabinoids/thc/' */
+  path: string;
+  data: {
+    title: string; description: string; h1?: string; answer: string;
+    kind: string; medical: boolean; updated: Date;
+    faq: { q: string; a: string }[];
+    sources: { title: string; url: string; publisher?: string; year?: number }[];
+    related: string[];
+    howTo?: { name: string; text: string }[];
+  };
+  langs: Lang[];
+  headings?: { slug: string; text: string }[];
+}
+const { lang, path, data, langs, headings = [] } = Astro.props;
+const t = useTranslations(lang);
+const site = Astro.site!.origin;
+const url = site + localePath(lang, path);
+
+// Breadcrumb chain from path segments; skip parents that have no page in this language.
+const segs = path.split('/').filter(Boolean);
+const crumbs: { name: string; path: string }[] = [];
+for (let i = 1; i < segs.length; i++) {
+  const p = segs.slice(0, i).join('/');
+  const e = await getEntry('pages', `${lang}/${p}`);
+  if (e) crumbs.push({ name: e.data.title, path: `/${p}/` });
+}
+crumbs.push({ name: data.h1 ?? data.title, path });
+
+const related = (
+  await Promise.all(data.related.map(async (slug) => {
+    const e = await getEntry('pages', `${lang}/${slug}`);
+    return e ? { slug, title: e.data.title, description: e.data.description } : null;
+  }))
+).filter((x): x is NonNullable<typeof x> => !!x);
+
+const children = (data.kind === 'hub' || data.kind === 'pillar')
+  ? (await getCollection('pages', (e) => !e.data.draft && e.id.startsWith(`${lang}${path}`) && e.id !== `${lang}${path.slice(0, -1)}`))
+      .filter((e) => e.id.slice(`${lang}${path}`.length).split('/').filter(Boolean).length === 1)
+      .map((e) => ({ slug: e.id.slice(lang.length + 1), title: e.data.title, description: e.data.description }))
+      .sort((a, b) => a.slug.localeCompare(b.slug))
+  : [];
+
+const page = {
+  '@context': 'https://schema.org',
+  '@type': data.medical ? ['MedicalWebPage', 'Article'] : data.kind === 'article' ? 'BlogPosting' : 'Article',
+  headline: data.h1 ?? data.title,
+  description: data.description,
+  inLanguage: lang,
+  url,
+  mainEntityOfPage: url,
+  dateModified: data.updated.toISOString(),
+  author: { '@type': 'Organization', name: '4-20' },
+  publisher: { '@type': 'Organization', name: '4-20', url: site },
+  ...(data.sources.length ? { citation: data.sources.map((s) => s.url) } : {}),
+};
+const jsonLd: object[] = [
+  page,
+  {
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [{ name: 'Home', path: '/' }, ...crumbs].map((c, i) => ({
+      '@type': 'ListItem', position: i + 1, name: c.name, item: site + localePath(lang, c.path),
+    })),
+  },
+];
+if (data.faq.length) jsonLd.push({
+  '@context': 'https://schema.org', '@type': 'FAQPage', inLanguage: lang,
+  mainEntity: data.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+});
+if (data.howTo?.length) jsonLd.push({
+  '@context': 'https://schema.org', '@type': 'HowTo', name: data.h1 ?? data.title, inLanguage: lang,
+  step: data.howTo.map((s, i) => ({ '@type': 'HowToStep', position: i + 1, name: s.name, text: s.text })),
+});
+---
+<Base lang={lang} path={path} title={data.title} description={data.description} jsonLd={jsonLd} langs={langs} ogType="article" pageHasDisclaimer={data.medical}>
+  <article class="container art">
+    <div class="shell" class:list={{ 'has-toc': headings.length > 2 }}>
+      <div class="col">
+        <HeroInfo lang={lang} h1={data.h1 ?? data.title} answer={data.answer} updated={data.updated}>
+          <Breadcrumbs slot="breadcrumbs" lang={lang} items={crumbs} />
+        </HeroInfo>
+        <div class="main">
+          {data.medical && <DisclaimerBanner lang={lang} />}
+          {headings.length > 2 && (
+            <details class="toc-m">
+              <summary>{t('ui.toc')}</summary>
+              <ol>{headings.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+            </details>
+          )}
+          <div class="prose body"><slot /></div>
+          <FAQBlock lang={lang} items={data.faq} />
+          <SourceCitation lang={lang} items={data.sources} />
+        </div>
+      </div>
+      {headings.length > 2 && (
+        <aside class="toc-d" aria-label={t('ui.toc')}>
+          <p class="toc-d__title">{t('ui.toc')}</p>
+          <ol>{headings.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+        </aside>
+      )}
+    </div>
+    {children.length > 0 && <RelatedArticles lang={lang} items={children} heading="children" />}
+    <RelatedArticles lang={lang} items={related} />
+  </article>
+</Base>
+<style>
+  .art { padding-bottom: 48px; }
+  .shell { display: block; }
+  .main { margin-top: 32px; }
+  .body { max-width: 74ch; }
+  @media (min-width: 1100px) {
+    .shell.has-toc { display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 56px; align-items: start; }
+    .shell.has-toc .col { min-width: 0; }
+  }
+  .toc-d { display: none; }
+  @media (min-width: 1100px) {
+    .toc-d { display: block; position: sticky; top: calc(var(--header-h) + 24px); margin-top: clamp(28px, 5vw, 56px); max-height: calc(100dvh - var(--header-h) - 48px); overflow-y: auto; padding: 18px 18px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+    .toc-m { display: none; }
+  }
+  .toc-d__title { margin: 0 0 10px; font: 700 .75rem/1 var(--font-head); letter-spacing: .12em; text-transform: uppercase; color: var(--brand-dark); }
+  .toc-d ol, .toc-m ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .toc-d a, .toc-m a { display: block; padding: 7px 10px; border-left: 3px solid transparent; border-radius: 0 8px 8px 0; color: var(--text-2); text-decoration: none; font-size: .9rem; line-height: 1.35; }
+  .toc-d a:hover, .toc-m a:hover { color: var(--text); background: var(--bg-alt); border-left-color: var(--brand); }
+  .toc-d a.is-active, .toc-m a.is-active { color: var(--text); font-weight: 700; background: color-mix(in srgb, var(--brand) 14%, transparent); border-left-color: var(--brand); }
+  .toc-m { margin-bottom: 28px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+  .toc-m summary { cursor: pointer; padding: 14px 16px; min-height: 48px; font: 700 1rem/1.3 var(--font-head); display: flex; align-items: center; justify-content: space-between; list-style: none; }
+  .toc-m summary::-webkit-details-marker { display: none; }
+  .toc-m summary::after { content: '+'; color: var(--brand-dark); font-size: 1.4rem; }
+  .toc-m[open] summary::after { content: '–'; }
+  .toc-m ol { padding: 0 8px 12px; }
+  .body :global(h2) { margin-top: 2em; scroll-margin-top: 88px; }
+  .body :global(h3) { margin-top: 1.6em; }
+  .body :global(ul), .body :global(ol) { padding-left: 1.3em; }
+  .body :global(li) { margin-bottom: .4em; }
+  .body :global(blockquote) { margin: 1.5em 0; padding: 4px 20px; border-left: 4px solid var(--border); color: var(--text-2); }
+</style>
+
+<script>
+  // Scroll-spy: highlight the TOC entry for the section currently being read.
+  const heads = Array.from(document.querySelectorAll<HTMLElement>('.body h2[id]'));
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.toc-d a, .toc-m a'));
+  if (heads.length && links.length) {
+    const aside = document.querySelector<HTMLElement>('.toc-d');
+    const OFFSET = 120; // px below the viewport top (sticky header + breathing room)
+    let ticking = false;
+    const update = () => {
+      ticking = false;
+      let cur = heads[0];
+      for (const h of heads) {
+        if (h.getBoundingClientRect().top - OFFSET <= 0) cur = h; else break;
+      }
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = heads[heads.length - 1];
+      for (const a of links) {
+        const on = a.getAttribute('href') === `#${cur.id}`;
+        a.classList.toggle('is-active', on);
+        if (on) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current');
+        if (on && aside && aside.offsetParent !== null && a.closest('.toc-d')) {
+          const top = a.offsetTop, bottom = top + a.offsetHeight;
+          if (top < aside.scrollTop + 40) aside.scrollTop = top - 40;
+          else if (bottom > aside.scrollTop + aside.clientHeight - 20) aside.scrollTop = bottom - aside.clientHeight + 20;
+        }
+      }
+    };
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+  }
+</script>

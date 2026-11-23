@@ -1,0 +1,26 @@
+---
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+interface Props { lang: Lang; items: { title: string; url: string; publisher?: string; year?: number }[] }
+const { lang, items } = Astro.props;
+const t = useTranslations(lang);
+---
+{items.length > 0 && (
+  <section class="src" aria-labelledby="src-h">
+    <h2 id="src-h">{t('ui.sources')}</h2>
+    <ol>
+      {items.map((s) => (
+        <li>
+          <a href={s.url} rel="noopener nofollow external" target="_blank">{s.title}</a>
+          {(s.publisher || s.year) && <span class="src__meta"> — {[s.publisher, s.year].filter(Boolean).join(', ')}</span>}
+        </li>
+      ))}
+    </ol>
+  </section>
+)}
+<style>
+  .src { margin-block: 48px; max-width: 74ch; }
+  .src ol { padding-left: 1.4em; font-size: .95rem; }
+  .src li { margin-bottom: 8px; }
+  .src__meta { color: var(--text-2); }
+</style>

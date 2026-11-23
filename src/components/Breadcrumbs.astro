@@ -1,0 +1,27 @@
+---
+import { localePath, useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/ui';
+interface Props { lang: Lang; items: { name: string; path: string }[] }
+const { lang, items } = Astro.props;
+const t = useTranslations(lang);
+const all = [{ name: t('ui.home'), path: '/' }, ...items];
+---
+<nav class="bc" aria-label={t('ui.breadcrumbs')}>
+  <ol>
+    {all.map((it, i) => (
+      <li>
+        {i < all.length - 1
+          ? <a href={localePath(lang, it.path)}>{it.name}</a>
+          : <span aria-current="page">{it.name}</span>}
+      </li>
+    ))}
+  </ol>
+</nav>
+<style>
+  .bc ol { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; list-style: none; margin: 0; padding: 0; font-size: .9rem; line-height: 1.4; }
+  .bc li { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+  .bc li:not(:last-child)::after { content: '›'; color: var(--text-2); line-height: 1; }
+  .bc a, .bc [aria-current='page'] { display: inline-block; font-size: inherit; line-height: inherit; }
+  .bc a { color: var(--link); text-decoration: underline; }
+  .bc [aria-current='page'] { color: var(--text); font-weight: 700; }
+</style>

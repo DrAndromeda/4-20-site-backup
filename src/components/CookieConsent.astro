@@ -1,0 +1,28 @@
+---
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+interface Props { lang: Lang }
+const t = useTranslations(Astro.props.lang);
+---
+<div class="ck" id="cookie-note" role="region" aria-label="Cookies" hidden>
+  <p>{t('cookie.text')}</p>
+  <button class="btn" type="button" data-ck-ok>{t('cookie.ok')}</button>
+</div>
+<style>
+  .ck { position: fixed; z-index: 150; left: var(--gutter); right: var(--gutter); bottom: 16px; max-width: 560px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); font-size: .9rem; }
+  .ck[hidden] { display: none; }
+  .ck p { margin: 0; flex: 1 1 240px; color: var(--text-2); }
+</style>
+<script>
+  const KEY = 'cookie-ok';
+  const el = document.getElementById('cookie-note');
+  let seen = false;
+  try { seen = localStorage.getItem(KEY) === '1'; } catch {}
+  if (el && !seen) {
+    el.hidden = false;
+    el.querySelector('[data-ck-ok]')?.addEventListener('click', () => {
+      try { localStorage.setItem(KEY, '1'); } catch {}
+      el.hidden = true;
+    });
+  }
+</script>

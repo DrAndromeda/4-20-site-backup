@@ -1,0 +1,44 @@
+---
+/** Static month grid with stage bars (CSS grid, no JS). start/end are month numbers 1–12; end < start wraps over the new year. */
+import type { Lang } from '../i18n/ui';
+import { useTranslations } from '../i18n/utils';
+interface Stage { label: string; start: number; end: number; color?: string }
+interface Props { lang: Lang; caption: string; stages: Stage[] }
+const { lang, caption, stages } = Astro.props;
+const t = useTranslations(lang);
+const months = Array.from({ length: 12 }, (_, i) => new Intl.DateTimeFormat(lang, { month: 'short' }).format(new Date(2024, i, 1)));
+const covers = (s: Stage, m: number) => (s.start <= s.end ? m >= s.start && m <= s.end : m >= s.start || m <= s.end);
+---
+<figure class="gc">
+  <figcaption>{caption} <span>· {t('ui.hemisphere')}</span></figcaption>
+  <div class="gc__scroll" role="region" aria-label={caption} tabindex="0">
+    <table>
+      <thead>
+        <tr><td></td>{months.map((m) => <th scope="col">{m}</th>)}</tr>
+      </thead>
+      <tbody>
+        {stages.map((s) => (
+          <tr>
+            <th scope="row">{s.label}</th>
+            {months.map((_, i) => {
+              const on = covers(s, i + 1);
+              return <td class:list={{ on }} style={on ? `--c:${s.color ?? 'var(--brand)'}` : undefined}><span class="sr-only">{on ? '●' : '—'}</span></td>;
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</figure>
+<style>
+  .gc { margin: 28px 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+  figcaption { padding: 14px 16px; font: 700 1rem/1.3 var(--font-head); border-bottom: 1px solid var(--border); }
+  figcaption span { font-weight: 500; color: var(--text-2); }
+  .gc__scroll { overflow-x: auto; }
+  table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 640px; font-size: .85rem; }
+  th, td { padding: 8px 4px; text-align: center; }
+  thead th { font: 700 .72rem/1 var(--font-head); text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); }
+  tbody th { text-align: left; padding-left: 16px; white-space: nowrap; font-weight: 600; position: sticky; left: 0; background: var(--surface); }
+  td { border-left: 1px solid var(--border); height: 40px; }
+  td.on { background: var(--c); }
+</style>

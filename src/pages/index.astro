@@ -1,0 +1,39 @@
+---
+import '../styles/global.css';
+import { LOCALES, LANG_META } from '../i18n/ui';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>4-20</title>
+    <meta name="robots" content="noindex,follow" />
+    <link rel="canonical" href="https://4-20.com.ua/en/" />
+    {LOCALES.map((l) => <link rel="alternate" hreflang={l} href={`https://4-20.com.ua/${l}/`} />)}
+    <link rel="alternate" hreflang="x-default" href="https://4-20.com.ua/en/" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <noscript><meta http-equiv="refresh" content="3;url=/ru/" /></noscript>
+  </head>
+  <body class="pick">
+    <main>
+      <p class="pick__logo">4·20</p>
+      <ul>
+        {LOCALES.map((l) => <li><a class="btn btn--ghost" href={`/${l}/`} hreflang={l} lang={l}>{LANG_META[l].name}</a></li>)}
+      </ul>
+    </main>
+    <script is:inline>
+      try {
+        var saved = localStorage.getItem('lang');
+        var nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+        var map = { ru: 'ru', uk: 'uk', en: 'en', es: 'es' };
+        location.replace('/' + (map[saved] || map[nav] || 'en') + '/');
+      } catch (e) {}
+    </script>
+  </body>
+</html>
+<style is:global>
+  .pick { min-height: 100dvh; display: grid; place-items: center; text-align: center; }
+  .pick__logo { font: 800 4rem/1 var(--font-head); margin: 0 0 24px; }
+  .pick ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+</style>
