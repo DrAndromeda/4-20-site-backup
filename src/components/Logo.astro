@@ -1,0 +1,25 @@
+---
+/** Brand mark: outline capsule with the folded leaf + "4:20". Leaflets fan out on hover. */
+interface Props { href: string; size?: 'md' | 'lg' }
+const { href, size = 'md' } = Astro.props;
+---
+<a class:list={['logo', `logo--${size}`]} href={href} aria-label="4-20">
+  <svg class="logo__leaf" viewBox="-68 -102 136 150" aria-hidden="true"><g class="lf" style="--a:0deg"><path class="lf__l" d="M0,0 C17.00,-22.00 17.85,-68.00 0,-100.00Z"/><path class="lf__d" d="M0,0 C-17.00,-22.00 -17.85,-68.00 0,-100.00Z"/></g><g class="lf" style="--a:34deg"><path class="lf__l" d="M0,0 C15.00,-18.92 15.75,-58.48 0,-86.00Z"/><path class="lf__d" d="M0,0 C-15.00,-18.92 -15.75,-58.48 0,-86.00Z"/></g><g class="lf" style="--a:-34deg"><path class="lf__l" d="M0,0 C15.00,-18.92 15.75,-58.48 0,-86.00Z"/><path class="lf__d" d="M0,0 C-15.00,-18.92 -15.75,-58.48 0,-86.00Z"/></g><g class="lf" style="--a:66deg"><path class="lf__l" d="M0,0 C12.00,-14.52 12.60,-44.88 0,-66.00Z"/><path class="lf__d" d="M0,0 C-12.00,-14.52 -12.60,-44.88 0,-66.00Z"/></g><g class="lf" style="--a:-66deg"><path class="lf__l" d="M0,0 C12.00,-14.52 12.60,-44.88 0,-66.00Z"/><path class="lf__d" d="M0,0 C-12.00,-14.52 -12.60,-44.88 0,-66.00Z"/></g><g class="lf" style="--a:98deg"><path class="lf__l" d="M0,0 C9.00,-9.68 9.45,-29.92 0,-44.00Z"/><path class="lf__d" d="M0,0 C-9.00,-9.68 -9.45,-29.92 0,-44.00Z"/></g><g class="lf" style="--a:-98deg"><path class="lf__l" d="M0,0 C9.00,-9.68 9.45,-29.92 0,-44.00Z"/><path class="lf__d" d="M0,0 C-9.00,-9.68 -9.45,-29.92 0,-44.00Z"/></g><rect class="lf__s" x="-2.4" y="-2" width="4.8" height="44" rx="2.4"/></svg>
+  <span class="logo__name" aria-hidden="true">4:20</span>
+</a>
+<style>
+  .logo { justify-self: start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 17px 6px 12px; text-decoration: none; color: var(--text);
+    border: 1.5px solid currentColor; border-radius: 999px; transition: border-color .2s, background .2s, box-shadow .2s; }
+  .logo:hover { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, transparent); color: var(--text); }
+  .logo__leaf { height: 28px; width: auto; flex: none; overflow: visible; }
+  .lf { transform: rotate(var(--a)); transition: transform .5s cubic-bezier(.3,1.5,.5,1); }
+  .logo:hover .lf { transform: rotate(calc(var(--a) * 1.14)); }
+  .lf__l { fill: var(--leaf-light); }
+  .lf__d { fill: #2f9a1f; }
+  .lf__s { fill: #4bd12e; }
+  .logo__name { font: 700 1.35rem/1 'Space Grotesk Variable', var(--font-head); letter-spacing: .02em; font-variant-numeric: lining-nums; }
+
+  .logo--lg { padding: 8px 20px 8px 14px; }
+  .logo--lg .logo__leaf { height: 34px; }
+  .logo--lg .logo__name { font-size: 1.6rem; }
+</style>

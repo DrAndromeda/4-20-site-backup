@@ -1,8 +1,8 @@
 ---
 import { LOCALES, LANG_META, type Lang } from '../i18n/ui';
 import { localePath, useTranslations } from '../i18n/utils';
-interface Props { lang: Lang; path: string; langs?: Lang[]; variant?: 'menu' | 'chips' }
-const { lang, path, langs = [...LOCALES], variant = 'menu' } = Astro.props;
+interface Props { lang: Lang; path: string; langs?: Lang[]; variant?: 'menu' | 'chips'; /** Accessible name for the chips nav; pass a distinct one when several switchers share a page. */ label?: string }
+const { lang, path, langs = [...LOCALES], variant = 'menu', label } = Astro.props;
 const t = useTranslations(lang);
 const href = (l: Lang) => localePath(l, langs.includes(l) ? path : '/');
 ---
@@ -26,7 +26,7 @@ const href = (l: Lang) => localePath(l, langs.includes(l) ? path : '/');
     </ul>
   </details>
 ) : (
-  <nav class="chips" aria-label={t('nav.language')}>
+  <nav class="chips" aria-label={label ?? t('nav.language')}>
     {LOCALES.map((l) => (
       <a href={href(l)} hreflang={l} lang={l} aria-current={l === lang ? 'true' : undefined}>{LANG_META[l].name}</a>
     ))}
@@ -37,8 +37,7 @@ const href = (l: Lang) => localePath(l, langs.includes(l) ? path : '/');
   .lm summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 12px 0 11px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); font: 700 .85rem/1 var(--font-head); letter-spacing: .04em; transition: border-color .15s, background .15s; user-select: none; }
   .lm summary::-webkit-details-marker { display: none; }
   .lm summary:hover, .lm[open] summary { border-color: var(--brand); background: var(--bg-alt); }
-  .lm__globe { width: 18px; height: 18px; color: var(--brand-dark); }
-  @media (prefers-color-scheme: dark) { .lm__globe { color: var(--brand); } }
+  .lm__globe { width: 18px; height: 18px; color: var(--accent-text); }
   .lm__chev { width: 14px; height: 14px; transition: transform .2s; }
   .lm[open] .lm__chev { transform: rotate(180deg); }
   .lm__list { position: absolute; right: 0; top: calc(100% + 8px); z-index: 130; min-width: 190px; margin: 0; padding: 6px; list-style: none; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 18px 40px rgb(0 0 0 / 22%); animation: lm-in .16s ease; }
@@ -48,7 +47,7 @@ const href = (l: Lang) => localePath(l, langs.includes(l) ? path : '/');
   .lm__list a[aria-current] { background: color-mix(in srgb, var(--brand) 14%, transparent); }
   .lm__code { width: 28px; font: 800 .75rem/1 var(--font-head); letter-spacing: .06em; color: var(--text-2); }
   .lm__name { font-weight: 600; flex: 1; }
-  .lm__check { width: 16px; height: 16px; color: var(--brand-dark); }
+  .lm__check { width: 16px; height: 16px; color: var(--accent-text); }
 
   .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .chips a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; border: 1px solid var(--border); border-radius: 999px; color: var(--text); text-decoration: none; font-weight: 600; background: var(--surface); }

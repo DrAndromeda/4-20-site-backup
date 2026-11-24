@@ -30,5 +30,9 @@ const { entry, langs } = Astro.props;
 const lang = Astro.params.lang as Lang;
 const { Content, headings } = await render(entry);
 const path = `/${Astro.params.slug}/`;
+// Reading time from the MDX body + answer + FAQ: strip imports/components/markup, ~200 words per minute.
+const text = [entry.body ?? '', entry.data.answer, ...entry.data.faq.flatMap((f) => [f.q, f.a])].join('\n');
+const words = text.replace(/^import .*$/gm, '').replace(/<[^>]+>/g, ' ').replace(/[#*_>`|\[\]()-]/g, ' ').split(/\s+/).filter(Boolean).length;
+const readMin = Math.max(1, Math.round(words / 200));
 ---
-<Article lang={lang} path={path} data={entry.data} langs={langs} headings={headings.filter((h) => h.depth === 2)}><Content components={{ ComparisonTable, TerpeneGrid, GrowCalendar, ChemicalDiagram, PotencyCalculator }} /></Article>
+<Article lang={lang} path={path} data={entry.data} langs={langs} readMin={readMin} headings={headings.filter((h) => h.depth === 2)}><Content components={{ ComparisonTable, TerpeneGrid, GrowCalendar, ChemicalDiagram, PotencyCalculator }} /></Article>

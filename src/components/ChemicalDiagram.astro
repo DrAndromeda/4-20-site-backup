@@ -22,13 +22,20 @@ const sub = formula.replace(/(\d+)/g, '<sub>$1</sub>');
   </figcaption>
 </figure>
 <style>
-  .cd { margin: 28px 0; display: grid; gap: 0; grid-template-columns: minmax(0, 1fr); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; max-width: 520px; }
+  .cd { margin: 32px 0; display: grid; grid-template-columns: minmax(0, 1fr); border: 1px solid var(--border); border-radius: 20px; background: var(--surface); overflow: hidden; max-width: 540px; box-shadow: var(--shadow-sm); transition: box-shadow .3s, border-color .3s; }
+  .cd:hover { border-color: color-mix(in srgb, var(--brand) 40%, var(--border)); box-shadow: var(--shadow); }
+  .cd__img { position: relative; padding: 28px 24px; display: grid; place-items: center; min-height: 180px; color: var(--text);
+    background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--brand) 8%, transparent), transparent 70%), radial-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 16px 16px, var(--surface-2); }
   .cd__img :global(svg) { width: 100%; max-width: 420px; height: auto; }
-  .cd__img { padding: 24px; background: #fff; display: grid; place-items: center; min-height: 180px; color: #1a1a2e; }
+  .cd__img :global(rect) { display: none; }
+  .cd__img :global(path[style*='stroke:#000000']) { stroke: currentColor !important; }
+  .cd__img :global(path[style*='fill:#000000']) { fill: currentColor !important; }
+  .cd__img :global([fill='#000000']) { fill: currentColor; }
   figcaption { padding: 16px 20px; }
   .cd__img + figcaption { border-top: 1px solid var(--border); }
-  figcaption h3 { margin: 0 0 8px; }
-  dl { margin: 0; display: flex; gap: 24px; flex-wrap: wrap; }
-  dt { font: 700 .72rem/1.4 var(--font-head); text-transform: uppercase; letter-spacing: .08em; color: var(--text-2); }
-  dd { margin: 0; font-weight: 600; }
+  figcaption h3 { margin: 0 0 10px; }
+  dl { margin: 0; display: flex; gap: 10px; flex-wrap: wrap; }
+  dl > div { padding: 8px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-alt); }
+  dt { font: 700 .68rem/1.4 var(--font-head); text-transform: uppercase; letter-spacing: .1em; color: var(--text-3); }
+  dd { margin: 0; font: 600 .95rem/1.4 var(--font-mono); }
 </style>

@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { getEntry } from 'astro:content';
+import { getEntry, getCollection } from 'astro:content';
 import { LOCALES, type Lang } from '../../i18n/ui';
 import thcSvg from '../../assets/structures/thc.svg?raw';
 import { localePath, useTranslations } from '../../i18n/utils';
@@ -11,18 +11,49 @@ export function getStaticPaths() {
 const lang = Astro.params.lang as Lang;
 const t = useTranslations(lang);
 
+const ico = (d: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const icons: Record<string, string> = {
-  cannabinoids: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="8" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 9l3 7M16 8l-3 8M8.5 7.5l7-1"/></svg>',
-  terpenes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c3.5 4 5.5 6.8 5.5 10a5.5 5.5 0 0 1-11 0C6.5 9.800 8.500 7 12 3z"/><path d="M12 19c-1.700 0-3-1.300-3-3"/></svg>',
-  growing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21v-9"/><path d="M12 12c0-4 2.500-6.500 7-6.500 0 4-2.500 6.500-7 6.500z"/><path d="M12 15c0-3-2-5-6-5 0 3.200 2 5 6 5z"/></svg>',
-  law: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0L5 7zM19 7l-3 7a3 3 0 0 0 6 0l-3-7z"/></svg>',
+  cannabinoids: ico('<circle cx="6" cy="8" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8 9l3 7M16 8l-3 8M8.5 7.5l7-1"/>'),
+  terpenes: ico('<path d="M12 3c3.5 4 5.5 6.8 5.5 10a5.5 5.5 0 0 1-11 0C6.5 9.8 8.5 7 12 3z"/><path d="M12 19c-1.7 0-3-1.3-3-3"/>'),
+  growing: ico('<path d="M12 21v-9"/><path d="M12 12c0-4 2.5-6.5 7-6.5 0 4-2.5 6.5-7 6.5z"/><path d="M12 15c0-3-2-5-6-5 0 3.2 2 5 6 5z"/>'),
+  law: ico('<path d="M12 4v16M7 20h10M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0L5 7zM19 7l-3 7a3 3 0 0 0 6 0l-3-7z"/>'),
+  consumption: ico('<path d="M3 12h4l2.5-6 5 12 2.5-6h4"/>'),
+  medical: ico('<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>'),
+  tools: ico('<rect x="5" y="3" width="14" height="18" rx="3"/><path d="M8.5 7h7M9 11h.01M12 11h.01M15 11h.01M9 14.5h.01M12 14.5h.01M15 14.5h.01M9 18h.01M12 18h.01M15 18h.01"/>'),
+  substances: ico('<path d="M9.5 3h5M10.5 3v6.2L5.3 18a2 2 0 0 0 1.7 3h10a2 2 0 0 0 1.7-3l-5.2-8.8V3"/><path d="M7.6 15h8.8"/>'),
+  strains: ico('<path d="M7 3c0 5 10 7 10 12 0 2.5-1 4.5-2 6M17 3c0 5-10 7-10 12 0 2.5 1 4.5 2 6"/><path d="M9 6.5h6M8.6 17.5h6.8"/>'),
 };
-const sections = await Promise.all(
-  (['cannabinoids', 'terpenes', 'growing', 'law'] as const).map(async (key) => {
-    const e = await getEntry('pages', `${lang}/${key}`);
-    return { key, href: `/${key}/`, desc: e?.data.description ?? '' };
-  }),
-);
+const label: Record<string, string> = {
+  cannabinoids: t('nav.cannabinoids'), terpenes: t('nav.terpenes'), growing: t('nav.growing'), law: t('nav.law'),
+  consumption: t('nav.use'), medical: t('home.sec.medical'), tools: t('nav.tools'), substances: t('home.sec.substances'), strains: t('home.sec.strains'),
+};
+const keys = ['cannabinoids', 'terpenes', 'growing', 'law', 'consumption', 'medical', 'tools', 'substances', 'strains'] as const;
+const sections = (await Promise.all(keys.map(async (key) => {
+  const e = await getEntry('pages', `${lang}/${key}`);
+  return e && !e.data.draft ? { key, href: `/${key}/`, desc: e.data.description } : null;
+}))).filter((x): x is NonNullable<typeof x> => !!x);
+
+// Short labels for "most read" chips: the part of the title before ':' / '(' / '—'.
+const popular = (await Promise.all(['cannabinoids/thc', 'cannabinoids/cbd', 'terpenes/myrcene', 'law/ukraine'].map(async (slug) => {
+  const e = await getEntry('pages', `${lang}/${slug}`);
+  return e && !e.data.draft ? { href: `/${slug}/`, label: e.data.title.split(/[:(—–]/)[0].trim() } : null;
+}))).filter((x): x is NonNullable<typeof x> => !!x);
+
+const all = await getCollection('pages', (e) => !e.data.draft && e.id.startsWith(`${lang}/`));
+const sourceCount = new Set(all.flatMap((e) => e.data.sources.map((s) => s.url))).size;
+const stats = [
+  { n: all.length, label: t('home.stats.articles') },
+  { n: sourceCount, label: t('home.stats.sources') },
+  { n: LOCALES.length, label: t('home.stats.langs') },
+];
+
+const principles = [
+  { t: t('home.p1.t'), d: t('home.p1.d'), icon: ico('<path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8.5 12h7M8.5 16h5"/>') },
+  { t: t('home.p2.t'), d: t('home.p2.d'), icon: ico('<path d="M12 3l7 3v5c0 4.5-3 8.5-7 10-4-1.5-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>') },
+  { t: t('home.p3.t'), d: t('home.p3.d'), icon: ico('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.7 3.9 5.7 3.9 9s-1.3 6.3-3.9 9c-2.6-2.7-3.9-5.7-3.9-9s1.3-6.3 3.9-9z"/>') },
+];
+
+const arrow = '<svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
 
 const jsonLd = [
   { '@context': 'https://schema.org', '@type': 'WebSite', name: '4-20', url: `https://4-20.com.ua/${lang}/`, inLanguage: lang, description: t('home.description') },
@@ -31,26 +62,71 @@ const jsonLd = [
 ---
 <Base lang={lang} path="/" title={t('home.title')} description={t('home.description')} jsonLd={jsonLd}>
   <section class="hero">
-    <span class="hero__blob hero__blob--a" aria-hidden="true"></span>
-    <span class="hero__blob hero__blob--b" aria-hidden="true"></span>
-    <div class="hero__mol" aria-hidden="true" set:html={thcSvg} />
+    <div class="hero__bg" aria-hidden="true">
+      <span class="hero__grid"></span>
+      <span class="hero__blob hero__blob--a"></span>
+      <span class="hero__blob hero__blob--b"></span>
+    </div>
     <div class="container hero__in">
-      <p class="eyebrow enter" style="--d:0">{t('site.tagline')}</p>
-      <h1 class="enter" style="--d:1">{t('home.h1')}</h1>
-      <p class="hero__answer enter" style="--d:2">{t('home.answer')}</p>
-      <a class="btn enter" style="--d:3" href={localePath(lang, '/about/')}>{t('home.cta')} →</a>
+      <div class="hero__copy">
+        <p class="pill enter" style="--d:0"><span class="pill__dot" aria-hidden="true"></span>{t('site.tagline')}</p>
+        <h1 class="enter" style="--d:1">{t('home.h1')}</h1>
+        <p class="hero__answer enter" style="--d:2">{t('home.answer')}</p>
+        <div class="hero__cta enter" style="--d:3">
+          <a class="btn" href={localePath(lang, '/about/')}>{t('home.cta')}<Fragment set:html={arrow} /></a>
+          <a class="btn btn--ghost" href={localePath(lang, '/tools/potency-calculator/')}>{t('home.secondary')}</a>
+        </div>
+        {popular.length > 0 && (
+          <div class="hero__topics enter" style="--d:4">
+            <span class="hero__topics-label">{t('home.popular')}</span>
+            <ul>{popular.map((p) => <li><a class="chip" href={localePath(lang, p.href)}>{p.label}</a></li>)}</ul>
+          </div>
+        )}
+      </div>
+
+      <div class="hero__art enter" style="--d:2" aria-hidden="true">
+        <span class="orbit orbit--1"></span>
+        <span class="orbit orbit--2"></span>
+        <div class="mol-card">
+          <div class="mol-card__head"><span class="mol-card__dot"></span>Δ⁹-THC</div>
+          <div class="mol-card__svg" set:html={thcSvg} />
+          <div class="mol-card__meta"><span>C<sub>21</sub>H<sub>30</sub>O<sub>2</sub></span><span>314.46 g/mol</span></div>
+        </div>
+        <span class="float float--a">CB1</span>
+        <span class="float float--b">CB2</span>
+      </div>
     </div>
   </section>
 
-  <section class="section section--alt">
+  <section class="stats-wrap">
     <div class="container">
-      <ul class="cards">
-        {sections.map(({ key, href, desc }) => (
-          <li>
+      <ul class="stats">
+        {stats.map((s) => (
+          <li class="spot"><strong data-count={s.n}>{s.n}</strong><span>{s.label}</span></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="sh">
+        <p class="eyebrow">{t('home.explore.eyebrow')}</p>
+        <h2>{t('home.explore.title')}</h2>
+        <p>{t('home.explore.text')}</p>
+      </div>
+      <ul class="bento">
+        {sections.map(({ key, href, desc }, i) => (
+          <li class:list={[`bento--${key}`, { 'bento--feature': i === 0 }]}>
             <a class="card-link" href={localePath(lang, href)}>
               <span class="card-link__icon" aria-hidden="true" set:html={icons[key]} />
-              <h2 class="card-link__title">{t(`nav.${key}`)}</h2>
+              <h3 class="card-link__title">{label[key]}</h3>
               <span class="card-link__desc">{desc}</span>
+              {i === 0 && (
+                <span class="bento__mols" aria-hidden="true">
+                  {['THC', 'CBD', 'CBN', 'CBG', 'THCV', 'CBC'].map((m) => <span>{m}</span>)}
+                </span>
+              )}
               <span class="card-link__go" aria-hidden="true"></span>
             </a>
           </li>
@@ -58,26 +134,153 @@ const jsonLd = [
       </ul>
     </div>
   </section>
+
+  <section class="section section--alt">
+    <div class="container">
+      <div class="sh">
+        <p class="eyebrow">{t('home.principles.eyebrow')}</p>
+        <h2>{t('home.principles.title')}</h2>
+      </div>
+      <ol class="principles">
+        {principles.map((p, i) => (
+          <li class="spot">
+            <span class="principles__n">0{i + 1}</span>
+            <span class="principles__icon" aria-hidden="true" set:html={p.icon} />
+            <h3>{p.t}</h3>
+            <p>{p.d}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="cta-band">
+        <div>
+          <h2>{t('home.faq.title')}</h2>
+          <p>{t('home.faq.text')}</p>
+        </div>
+        <div class="cta-band__actions">
+          <a class="btn" href={localePath(lang, '/faq/')}>{t('home.faq.cta')}<Fragment set:html={arrow} /></a>
+          <a class="btn btn--ghost" href={localePath(lang, '/sources/')}>{t('footer.sources')}</a>
+        </div>
+      </div>
+    </div>
+  </section>
 </Base>
 
+<script>
+  // Count-up for the stats row. Numbers already on screen at load keep their final value (no flicker);
+  // ones below the fold start at 0 and count up when they scroll into view.
+  const nums = document.querySelectorAll<HTMLElement>('[data-count]');
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => es.forEach((e) => {
+      if (!e.isIntersecting) return;
+      io.unobserve(e.target);
+      const el = e.target as HTMLElement, end = Number(el.dataset.count), t0 = performance.now(), dur = 1100;
+      const step = (now: number) => {
+        const p = Math.min(1, (now - t0) / dur);
+        el.textContent = String(Math.round(end * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }), { threshold: 0.6 });
+    nums.forEach((n) => {
+      if (n.getBoundingClientRect().top < window.innerHeight) return;
+      n.textContent = '0';
+      io.observe(n);
+    });
+  }
+</script>
+
 <style>
-  .hero { position: relative; overflow: hidden; isolation: isolate; padding-block: clamp(64px, 11vw, 140px); background: var(--bg); }
-  .hero__in { position: relative; }
-  .hero h1 { margin: 16px 0 20px; max-width: 14ch; font-size: clamp(2.6rem, 7vw, 5rem); background: linear-gradient(120deg, var(--text) 35%, var(--brand-dark)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  @media (prefers-color-scheme: dark) { .hero h1 { background-image: linear-gradient(120deg, var(--text) 40%, var(--brand)); } }
-  .hero__answer { font-size: clamp(1.1rem, 2vw, 1.3rem); color: var(--text-2); max-width: 58ch; margin-bottom: 28px; }
-  .hero__blob { position: absolute; z-index: -1; border-radius: 50%; filter: blur(70px); opacity: .5; pointer-events: none; }
-  .hero__blob--a { width: 520px; height: 520px; right: -120px; top: -160px; background: color-mix(in srgb, var(--brand) 55%, transparent); animation: drift-a 16s ease-in-out infinite alternate; }
-  .hero__blob--b { width: 380px; height: 380px; left: -140px; bottom: -180px; background: color-mix(in srgb, var(--brand-light) 40%, transparent); animation: drift-b 20s ease-in-out infinite alternate; }
+  /* ---------- Hero ---------- */
+  .hero { position: relative; overflow: hidden; isolation: isolate; padding-block: clamp(56px, 9vw, 120px) clamp(72px, 9vw, 120px); }
+  .hero__bg { position: absolute; inset: 0; z-index: -1; pointer-events: none; mask-image: linear-gradient(transparent, #000 10%, #000 65%, transparent); -webkit-mask-image: linear-gradient(transparent, #000 10%, #000 65%, transparent); }
+  .hero__grid { position: absolute; inset: 0; background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px); background-size: 56px 56px; mask-image: radial-gradient(ellipse 80% 70% at 60% 30%, #000 30%, transparent 75%); -webkit-mask-image: radial-gradient(ellipse 80% 70% at 60% 30%, #000 30%, transparent 75%); }
+  .hero__blob { position: absolute; border-radius: 50%; }
+  .hero__blob--a { width: 900px; height: 700px; right: -260px; top: -320px; background: radial-gradient(closest-side, var(--glow), transparent); animation: drift-a 16s ease-in-out infinite alternate; }
+  .hero__blob--b { width: 640px; height: 520px; left: -260px; bottom: -200px; background: radial-gradient(closest-side, color-mix(in srgb, var(--brand-light) 22%, transparent), transparent); animation: drift-b 20s ease-in-out infinite alternate; }
   @keyframes drift-a { to { transform: translate(-60px, 50px) scale(1.12); } }
   @keyframes drift-b { to { transform: translate(70px, -40px) scale(1.1); } }
-  .hero__mol { position: absolute; z-index: -1; right: max(2vw, 0px); top: 50%; width: min(520px, 58vw); color: var(--brand); opacity: .16; transform: translateY(-50%) rotate(-8deg); animation: float 9s ease-in-out infinite alternate; pointer-events: none; }
-  .hero__mol :global(svg) { width: 100%; height: auto; }
-  .hero__mol :global(path[class^='bond']) { stroke: currentColor !important; }
-  .hero__mol :global(path[class^='atom']) { fill: currentColor !important; stroke: none !important; }
-  .hero__mol :global(rect) { display: none; }
-  @keyframes float { to { transform: translateY(-54%) rotate(-3deg); } }
-  .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); }
-  .card-link { min-height: 220px; padding: 26px; }
-  .card-link__title { font-size: 1.45rem; }
+
+  .hero__in { display: grid; gap: 48px; align-items: center; }
+  @media (min-width: 960px) { .hero__in { grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 56px; } }
+  .hero h1 { margin: 22px 0 22px; max-width: 13ch; font-size: clamp(2.7rem, 6.6vw, 5.2rem); line-height: 1.02; letter-spacing: -0.045em;
+    background: linear-gradient(115deg, var(--text) 30%, color-mix(in srgb, var(--accent-text) 85%, var(--text)) 75%, var(--brand)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero__answer { font-size: clamp(1.08rem, 1.8vw, 1.24rem); line-height: 1.65; color: var(--text-2); max-width: 54ch; margin-bottom: 32px; }
+  .hero__cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .hero__topics { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 36px; }
+  .hero__topics-label { font: 700 .74rem/1 var(--font-head); letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }
+  .hero__topics ul { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0; padding: 0; }
+
+  /* Molecule showcase */
+  .hero__art { position: relative; display: none; aspect-ratio: 1; max-width: 480px; justify-self: center; width: 100%; }
+  @media (min-width: 960px) { .hero__art { display: grid; place-items: center; } }
+  .orbit { position: absolute; inset: 4%; border-radius: 50%; border: 1px dashed color-mix(in srgb, var(--brand) 35%, transparent); animation: spin 60s linear infinite; }
+  .orbit--2 { inset: 16%; border-style: solid; border-color: var(--border); animation-duration: 90s; animation-direction: reverse; }
+  .orbit--1::after { content: ''; position: absolute; top: 12%; left: 12%; width: 10px; height: 10px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 16px var(--brand); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .mol-card { position: relative; width: 82%; padding: 18px 18px 14px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--glass); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); box-shadow: var(--shadow-lg); animation: float 8s ease-in-out infinite alternate; }
+  @keyframes float { from { transform: translateY(-6px) rotate(-1.5deg); } to { transform: translateY(8px) rotate(1deg); } }
+  .mol-card__head { display: flex; align-items: center; gap: 8px; font: 700 .85rem/1 var(--font-mono); color: var(--text-2); }
+  .mol-card__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 10px var(--brand); }
+  .mol-card__svg { color: var(--text); margin: 6px -6px; }
+  .mol-card__svg :global(svg) { width: 100%; height: auto; }
+  .mol-card__svg :global(rect) { display: none; }
+  .mol-card__svg :global(path[style*='#000000']) { stroke: currentColor !important; }
+  .mol-card__svg :global(path[style*='fill:#000000']) { fill: currentColor !important; }
+  .mol-card__svg :global(path[class^='bond']) { animation: draw 1.6s var(--ease) .5s both; }
+  @keyframes draw { from { stroke-dasharray: 60; stroke-dashoffset: 60; } to { stroke-dasharray: 60; stroke-dashoffset: 0; } }
+  .mol-card__svg :global([fill='#000000']) { fill: currentColor; }
+  .mol-card__meta { display: flex; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border); font: 600 .85rem/1 var(--font-mono); color: var(--text-2); }
+  .float { position: absolute; padding: 8px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); font: 700 .8rem/1 var(--font-mono); color: var(--accent-text); animation: bob 6s ease-in-out infinite alternate; }
+  .float--a { top: 10%; right: 2%; }
+  .float--b { bottom: 12%; left: 0; animation-delay: -3s; }
+  @keyframes bob { to { transform: translateY(-12px); } }
+
+  /* ---------- Stats ---------- */
+  .stats-wrap { position: relative; z-index: 1; margin-top: -40px; }
+  .stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .stats li { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 6px; padding: clamp(16px, 3vw, 26px); border: 1px solid var(--border); border-radius: 20px; background: var(--glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: var(--shadow); }
+  .stats strong { font: 700 clamp(1.8rem, 5vw, 2.8rem)/1 var(--font-mono); letter-spacing: -.03em; font-variant-numeric: tabular-nums;
+    background: linear-gradient(135deg, var(--text), var(--accent-text)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .stats span { color: var(--text-2); font-size: clamp(.78rem, 2vw, .92rem); font-weight: 600; }
+
+  /* ---------- Bento ---------- */
+  .bento { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+  @media (min-width: 900px) {
+    .bento { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .bento--feature { grid-column: span 2; grid-row: span 2; }
+  }
+  .bento .card-link { min-height: 210px; }
+  .bento--feature .card-link { padding: clamp(26px, 3vw, 36px); background:
+      radial-gradient(600px 300px at 100% 0%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 70%), var(--surface); }
+  .bento--feature .card-link__title { font-size: clamp(1.5rem, 3vw, 2.1rem); margin-top: 8px; }
+  .bento--feature .card-link__desc { font-size: 1.05rem; max-width: 46ch; }
+  .bento--feature .card-link__icon { width: 60px; height: 60px; border-radius: 18px; }
+  .bento__mols { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 28px; }
+  .bento__mols span { padding: 7px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); font: 700 .82rem/1 var(--font-mono); color: var(--text-2); transition: border-color .3s, color .3s, transform .4s var(--ease-spring); }
+  .card-link:hover .bento__mols span { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); color: var(--accent-text); }
+  .card-link:hover .bento__mols span:nth-child(odd) { transform: translateY(-3px); }
+
+  /* ---------- Principles ---------- */
+  .principles { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+  .principles li { position: relative; overflow: hidden; isolation: isolate; padding: 28px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+  .principles li::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .3s; background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 0), color-mix(in srgb, var(--brand) 12%, transparent), transparent 65%); }
+  .principles li:hover::before { opacity: 1; }
+  .principles__n { position: absolute; top: 22px; right: 24px; font: 700 .85rem/1 var(--font-mono); color: var(--text-3); }
+  .principles__icon { width: 44px; height: 44px; display: grid; place-items: center; margin-bottom: 18px; border-radius: 12px; background: color-mix(in srgb, var(--brand) 14%, transparent); color: var(--accent-text); }
+  .principles__icon :global(svg) { width: 24px; height: 24px; }
+  .principles h3 { margin-bottom: 8px; }
+  .principles p { margin: 0; color: var(--text-2); font-size: .96rem; }
+
+  /* ---------- CTA band ---------- */
+  .cta-band { position: relative; overflow: hidden; isolation: isolate; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 28px; padding: clamp(28px, 5vw, 56px); border-radius: 28px; border: 1px solid color-mix(in srgb, var(--brand) 35%, var(--border));
+    background: radial-gradient(500px 260px at 0% 0%, color-mix(in srgb, var(--brand) 24%, transparent), transparent 70%), radial-gradient(500px 260px at 100% 100%, color-mix(in srgb, var(--brand-light) 18%, transparent), transparent 70%), var(--surface); }
+  .cta-band::after { content: ''; position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(var(--grid-line) 1.2px, transparent 1.2px); background-size: 18px 18px; mask-image: linear-gradient(90deg, transparent, #000); -webkit-mask-image: linear-gradient(90deg, transparent, #000); }
+  .cta-band h2 { margin: 0 0 8px; font-size: clamp(1.6rem, 3.5vw, 2.3rem); }
+  .cta-band p { margin: 0; color: var(--text-2); max-width: 52ch; }
+  .cta-band__actions { display: flex; flex-wrap: wrap; gap: 12px; }
 </style>

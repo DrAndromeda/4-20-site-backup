@@ -11,10 +11,10 @@ const t = useTranslations(Astro.props.lang);
   <p><strong>{t('disclaimer.title')}</strong>{t('disclaimer.text')}</p>
 </aside>
 <style>
-  .disc { display: flex; gap: 12px; align-items: flex-start; max-width: 74ch; margin-block: 8px 28px; padding: 12px 14px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: 12px; color: var(--text-2); font-size: .85rem; line-height: 1.55; }
-  .disc__icon { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: color-mix(in srgb, var(--warn-border) 22%, transparent); color: var(--warn-border); margin-top: 1px; }
-  .disc__icon svg { width: 18px; height: 18px; }
+  .disc { display: flex; gap: 12px; align-items: flex-start; max-width: 74ch; margin-block: 8px 28px; padding: 12px 16px 12px 12px; background: color-mix(in srgb, var(--warn-border) 6%, var(--surface)); border: 1px solid var(--border); border-radius: 14px; color: var(--text-2); font-size: .85rem; line-height: 1.55; }
+  .disc__icon { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 9px; background: color-mix(in srgb, var(--warn-border) 18%, transparent); color: var(--warn-border); margin-top: 1px; }
+  .disc__icon svg { width: 17px; height: 17px; }
   .disc p { margin: 0; }
   .disc strong { color: var(--text); font-weight: 700; margin-right: .5em; }
-  .disc strong::after { content: '·'; margin-left: .5em; color: var(--text-2); }
+  .disc strong::after { content: '·'; margin-left: .5em; color: var(--text-3); }
 </style>

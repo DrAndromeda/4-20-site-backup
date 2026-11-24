@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { LOCALES, LANG_META } from '../i18n/ui';
+import Logo from '../components/Logo.astro';
 ---
 <!doctype html>
 <html lang="en">
@@ -13,13 +14,14 @@ import { LOCALES, LANG_META } from '../i18n/ui';
     {LOCALES.map((l) => <link rel="alternate" hreflang={l} href={`https://4-20.com.ua/${l}/`} />)}
     <link rel="alternate" hreflang="x-default" href="https://4-20.com.ua/en/" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
     <noscript><meta http-equiv="refresh" content="3;url=/ru/" /></noscript>
   </head>
   <body class="pick">
     <main>
-      <p class="pick__logo">4·20</p>
+      <div class="pick__logo"><Logo href="/en/" size="lg" /></div>
       <ul>
-        {LOCALES.map((l) => <li><a class="btn btn--ghost" href={`/${l}/`} hreflang={l} lang={l}>{LANG_META[l].name}</a></li>)}
+        {LOCALES.map((l) => <li><a class="card-link pick__lang" href={`/${l}/`} hreflang={l} lang={l}><span class="pick__code">{LANG_META[l].label}</span>{LANG_META[l].name}<span class="card-link__go" aria-hidden="true"></span></a></li>)}
       </ul>
     </main>
     <script is:inline>
@@ -33,7 +35,11 @@ import { LOCALES, LANG_META } from '../i18n/ui';
   </body>
 </html>
 <style is:global>
-  .pick { min-height: 100dvh; display: grid; place-items: center; text-align: center; }
-  .pick__logo { font: 800 4rem/1 var(--font-head); margin: 0 0 24px; }
-  .pick ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .pick { min-height: 100dvh; display: grid; place-items: center; padding: 24px; background: radial-gradient(600px 400px at 50% 0%, var(--glow), transparent 70%), var(--bg); }
+  .pick main { width: min(360px, 100%); }
+  .pick__logo { display: flex; justify-content: center; margin: 0 0 28px; }
+  .pick ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+  .pick__lang { flex-direction: row; align-items: center; gap: 14px; padding: 16px 18px; font: 700 1.05rem/1 var(--font-head); }
+  .pick__lang .card-link__go { top: 50%; margin-top: -18px; right: 14px; }
+  .pick__code { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; background: var(--bg-alt); border: 1px solid var(--border); font: 700 .75rem/1 var(--font-mono); color: var(--text-2); }
 </style>

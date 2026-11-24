@@ -36,7 +36,9 @@ const ld = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#4bd12e" />
+    <meta name="theme-color" content="#fafcf9" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0f0a" media="(prefers-color-scheme: dark)" />
+    <script is:inline>try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark'){document.documentElement.dataset.theme=t;document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=t==='dark'?'#0a0f0a':'#fafcf9'})}}catch(e){}</script>
     {noindex && <meta name="robots" content="noindex,follow" />}
     <link rel="canonical" href={canonical} />
     {langs.map((l) => <link rel="alternate" hreflang={l} href={site + localePath(l, path)} />)}
@@ -61,9 +63,12 @@ const ld = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <a class="skip-link" href="#main">{t('nav.skip')}</a>
     <Header lang={lang} path={path} langs={langs} />
     <main id="main"><slot /></main>
-    <Footer lang={lang} showDisclaimer={!pageHasDisclaimer} />
+    <Footer lang={lang} path={path} langs={langs} showDisclaimer={!pageHasDisclaimer} />
     <AgeGate lang={lang} />
     <CookieConsent lang={lang} />
+    <button class="totop" type="button" data-totop aria-label={t('ui.toTop')} title={t('ui.toTop')}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+    </button>
     <script>
       const root = document.documentElement;
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -71,10 +76,13 @@ const ld = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
       const hdr = document.querySelector('.hdr');
       const bar = document.querySelector<HTMLElement>('[data-progress]');
       const art = document.querySelector<HTMLElement>('article.art');
+      const top = document.querySelector<HTMLButtonElement>('[data-totop]');
+      top?.addEventListener('click', () => window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' }));
       let tick = false;
       const onScroll = () => {
         tick = false;
         hdr?.classList.toggle('is-scrolled', window.scrollY > 8);
+        top?.classList.toggle('is-on', window.scrollY > 900);
         if (bar && art) {
           const r = art.getBoundingClientRect();
           const total = r.height - window.innerHeight;
@@ -86,13 +94,24 @@ const ld = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 
       // scroll reveal (only for elements still below the fold)
       if (!reduce && 'IntersectionObserver' in window) {
-        const targets = document.querySelectorAll<HTMLElement>('.body h2, .body .ct, .body .tg, .body .gc, .body .cd, .body figure, .faq, .src, .rel, .rel li, .cards li, .pc');
+        const targets = document.querySelectorAll<HTMLElement>('.body h2, .body .ct, .body .tg, .body .gc, .body .cd, .body figure, .faq, .src, .rel, .rel li, .bento li, .principles li, .stats li, .sh, .cta-band, .pc, .ftr__grid > *');
         const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
         targets.forEach((el, n) => {
           if (el.getBoundingClientRect().top < window.innerHeight * 0.95) return;
           if (el.matches('li')) el.style.setProperty('--i', String(Array.from(el.parentElement!.children).indexOf(el)));
           el.classList.add('reveal'); io.observe(el);
         });
+      }
+
+      // pointer spotlight on navigational cards
+      if (matchMedia('(hover: hover)').matches) {
+        document.addEventListener('pointermove', (e) => {
+          const c = (e.target as HTMLElement).closest?.<HTMLElement>('.card-link, .spot');
+          if (!c) return;
+          const r = c.getBoundingClientRect();
+          c.style.setProperty('--mx', `${e.clientX - r.left}px`);
+          c.style.setProperty('--my', `${e.clientY - r.top}px`);
+        }, { passive: true });
       }
     </script>
   </body>

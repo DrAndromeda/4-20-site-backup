@@ -21,11 +21,16 @@ const t = L[lang];
   <p class="pc__note">{t.note}</p>
 </form>
 <style>
-  .pc { display: grid; gap: 14px; max-width: 460px; margin: 28px 0; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-  .pc label { display: grid; gap: 6px; font-weight: 600; font-size: .95rem; }
-  .pc input { min-height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font: inherit; background: var(--bg); color: var(--text); }
-  .pc__out { margin: 0; font: 700 1.1rem/1.5 var(--font-head); min-height: 1.5em; }
-  .pc__note { margin: 0; color: var(--text-2); font-size: .85rem; }
+  .pc { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); max-width: 640px; margin: 32px 0; padding: clamp(18px, 3vw, 28px); border: 1px solid var(--border); border-radius: 22px;
+    background: radial-gradient(420px 220px at 100% 0%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 70%), var(--surface); box-shadow: var(--shadow); }
+  .pc label { display: grid; gap: 8px; align-content: start; font-weight: 600; font-size: .88rem; color: var(--text-2); }
+  .pc input { min-height: 48px; padding: 0 14px; border: 1px solid var(--border-strong); border-radius: 12px; font: 600 1.05rem/1 var(--font-mono); background: var(--bg); color: var(--text); transition: border-color .2s, box-shadow .2s; }
+  .pc input:hover { border-color: color-mix(in srgb, var(--brand) 50%, var(--border-strong)); }
+  .pc input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 22%, transparent); }
+  .pc .btn { grid-column: 1 / -1; justify-self: start; }
+  .pc__out { grid-column: 1 / -1; margin: 0; padding: 18px 20px; border-radius: 16px; background: var(--bg-alt); border: 1px solid var(--border); font: 700 1.1rem/1.5 var(--font-mono); min-height: 1.5em; color: var(--text); }
+  .pc__out:empty { display: none; }
+  .pc__note { grid-column: 1 / -1; margin: 0; color: var(--text-3); font-size: .82rem; line-height: 1.55; }
 </style>
 <script>
   document.querySelectorAll<HTMLFormElement>('[data-pc]').forEach((f) => {

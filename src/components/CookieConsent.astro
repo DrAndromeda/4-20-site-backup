@@ -9,9 +9,12 @@ const t = useTranslations(Astro.props.lang);
   <button class="btn" type="button" data-ck-ok>{t('cookie.ok')}</button>
 </div>
 <style>
-  .ck { position: fixed; z-index: 150; left: var(--gutter); right: var(--gutter); bottom: 16px; max-width: 560px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; box-shadow: var(--shadow); font-size: .9rem; }
+  .ck { position: fixed; z-index: 150; left: var(--gutter); right: var(--gutter); bottom: 16px; max-width: 520px; display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+    background: var(--glass); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); border: 1px solid var(--border); border-radius: 20px; padding: 14px 14px 14px 18px; box-shadow: var(--shadow-lg); font-size: .88rem; animation: ck-in .5s var(--ease) both .6s; }
+  @keyframes ck-in { from { opacity: 0; transform: translateY(24px); } }
   .ck[hidden] { display: none; }
   .ck p { margin: 0; flex: 1 1 240px; color: var(--text-2); }
+  .ck .btn { min-height: 40px; padding: 0 1.1rem; font-size: .9rem; }
 </style>
 <script>
   const KEY = 'cookie-ok';

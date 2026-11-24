@@ -2,33 +2,61 @@
 import type { Lang } from '../i18n/ui';
 import { localePath, useTranslations } from '../i18n/utils';
 import DisclaimerBanner from './DisclaimerBanner.astro';
-interface Props { lang: Lang; showDisclaimer?: boolean }
-const { lang, showDisclaimer = true } = Astro.props;
+import LangSwitcher from './LangSwitcher.astro';
+import Logo from './Logo.astro';
+interface Props { lang: Lang; path?: string; langs?: Lang[]; showDisclaimer?: boolean }
+const { lang, path = '/', langs, showDisclaimer = true } = Astro.props;
 const t = useTranslations(lang);
+const sections: [string, string][] = [
+  [t('nav.about'), '/about/'], [t('nav.cannabinoids'), '/cannabinoids/'], [t('nav.terpenes'), '/terpenes/'],
+  [t('nav.growing'), '/growing/'], [t('nav.use'), '/consumption/'], [t('nav.law'), '/law/'],
+];
+const project: [string, string][] = [
+  [t('home.sec.medical'), '/medical/'], [t('nav.tools'), '/tools/'], [t('nav.faq'), '/faq/'],
+  [t('footer.sources'), '/sources/'], [t('footer.legal'), '/legal/'],
+];
 ---
 <footer class="ftr">
   <div class="container">
     {showDisclaimer && <DisclaimerBanner lang={lang} />}
-    <div class="ftr__row">
-      <div>
-        <a class="ftr__logo" href={localePath(lang)}>4·20</a>
+    <div class="ftr__grid">
+      <div class="ftr__brand">
+        <Logo href={localePath(lang)} size="lg" />
         <p class="ftr__about">{t('footer.about')}</p>
+        <LangSwitcher lang={lang} path={path} langs={langs} variant="chips" label={t('footer.langNav')} />
       </div>
-      <nav class="ftr__links" aria-label="Footer">
-        <a href={localePath(lang, '/legal/')}>{t('footer.legal')}</a>
-        <a href={localePath(lang, '/sources/')}>{t('footer.sources')}</a>
-        <a href={localePath(lang, '/faq/')}>{t('nav.faq')}</a>
+      <nav class="ftr__col" aria-labelledby="ftr-sec">
+        <p class="ftr__h" id="ftr-sec">{t('footer.sections')}</p>
+        <ul>{sections.map(([name, href]) => <li><a href={localePath(lang, href)}>{name}</a></li>)}</ul>
+      </nav>
+      <nav class="ftr__col" aria-labelledby="ftr-proj">
+        <p class="ftr__h" id="ftr-proj">{t('footer.project')}</p>
+        <ul>{project.map(([name, href]) => <li><a href={localePath(lang, href)}>{name}</a></li>)}</ul>
       </nav>
     </div>
-    <p class="ftr__copy">© {new Date().getFullYear()} 4-20.com.ua. {t('footer.rights')}</p>
+    <div class="ftr__bottom">
+      <p>© {new Date().getFullYear()} 4-20.com.ua. {t('footer.rights')}</p>
+      <p class="ftr__age"><span>18+</span>{t('site.tagline')}</p>
+    </div>
   </div>
+  <div class="ftr__word" aria-hidden="true">4:20</div>
 </footer>
 <style>
-  .ftr { background: var(--bg-alt); border-top: 1px solid var(--border); padding-block: 24px 40px; margin-top: 0; }
-  .ftr__row { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; align-items: flex-start; }
-  .ftr__logo { font: 800 1.5rem/1 var(--font-head); color: var(--text); text-decoration: none; }
-  .ftr__about { color: var(--text-2); margin: 8px 0 0; max-width: 40ch; }
-  .ftr__links { display: flex; flex-wrap: wrap; gap: 4px 20px; }
-  .ftr__links a { display: inline-flex; align-items: center; min-height: 44px; color: var(--link); text-decoration: underline; font-weight: 600; }
-  .ftr__copy { margin: 24px 0 0; color: var(--text-2); font-size: .85rem; }
+  .ftr { position: relative; overflow: hidden; isolation: isolate; background: var(--bg-alt); border-top: 1px solid var(--border); padding-block: 40px 0; }
+  .ftr::before { content: ''; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--brand) 70%, transparent), transparent); }
+  .ftr__grid { display: grid; gap: 36px; padding-block: 24px 40px; grid-template-columns: 1fr; }
+  @media (min-width: 720px) { .ftr__grid { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr); gap: 48px; } }
+  .ftr__brand { display: grid; gap: 18px; justify-items: start; align-content: start; }
+  .ftr__about { margin: 0; color: var(--text-2); max-width: 40ch; }
+  .ftr__brand :global(.chips a) { min-height: 38px; padding: 0 14px; font-size: .88rem; }
+  .ftr__h { margin: 0 0 14px; font: 700 .74rem/1 var(--font-head); letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); }
+  .ftr__col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .ftr__col a { display: inline-flex; align-items: center; min-height: 36px; color: var(--text-2); text-decoration: none; font-weight: 500; transition: color .15s, transform .2s var(--ease); }
+  .ftr__col a:hover { color: var(--text); transform: translateX(3px); }
+  .ftr__bottom { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: center; padding-block: 20px; border-top: 1px solid var(--border); color: var(--text-3); font-size: .84rem; }
+  .ftr__bottom p { margin: 0; }
+  .ftr__age { display: inline-flex; align-items: center; gap: 10px; }
+  .ftr__age span { padding: 3px 8px; border: 1px solid var(--border-strong); border-radius: 999px; font: 700 .72rem/1 var(--font-mono); color: var(--text-2); }
+  .ftr__word { margin: 8px 0 -0.22em; text-align: center; font: 700 clamp(6rem, 26vw, 22rem)/.9 'Space Grotesk Variable', var(--font-head); letter-spacing: -.04em; color: transparent; -webkit-text-stroke: 1px color-mix(in srgb, var(--text) 10%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--brand) 14%, transparent), transparent 75%); -webkit-background-clip: text; background-clip: text; user-select: none; pointer-events: none; }
 </style>

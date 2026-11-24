@@ -18,10 +18,12 @@ const all = [{ name: t('ui.home'), path: '/' }, ...items];
   </ol>
 </nav>
 <style>
-  .bc ol { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; list-style: none; margin: 0; padding: 0; font-size: .9rem; line-height: 1.4; }
-  .bc li { display: flex; align-items: center; gap: 8px; min-height: 32px; }
-  .bc li:not(:last-child)::after { content: '›'; color: var(--text-2); line-height: 1; }
+  .bc ol { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; list-style: none; margin: 0; padding: 0; font-size: .86rem; line-height: 1.4; }
+  .bc li { display: flex; align-items: center; gap: 6px; min-height: 32px; }
+  .bc li:not(:last-child)::after { content: ''; width: 6px; height: 6px; border-right: 1.5px solid var(--text-3); border-top: 1.5px solid var(--text-3); transform: rotate(45deg); margin: 0 2px; }
   .bc a, .bc [aria-current='page'] { display: inline-block; font-size: inherit; line-height: inherit; }
-  .bc a { color: var(--link); text-decoration: underline; }
-  .bc [aria-current='page'] { color: var(--text); font-weight: 700; }
+  .bc a { color: var(--text-2); text-decoration: none; padding: 3px 8px; border-radius: 999px; transition: color .15s, background .15s; }
+  .bc li:first-child a { margin-left: -8px; }
+  .bc a:hover { color: var(--text); background: color-mix(in srgb, var(--brand) 12%, transparent); }
+  .bc [aria-current="page"] { color: var(--text); font-weight: 600; }
 </style>

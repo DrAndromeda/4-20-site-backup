@@ -1,26 +1,57 @@
 ---
 import type { Lang } from '../i18n/ui';
 import { useTranslations } from '../i18n/utils';
-interface Props { lang: Lang; h1: string; answer: string; eyebrow?: string; updated?: Date }
-const { lang, h1, answer, eyebrow, updated } = Astro.props;
+interface Props { lang: Lang; h1: string; answer: string; eyebrow?: string; updated?: Date; readMin?: number; sources?: number }
+const { lang, h1, answer, eyebrow, updated, readMin, sources = 0 } = Astro.props;
 const t = useTranslations(lang);
 const fmt = updated ? new Intl.DateTimeFormat(lang, { dateStyle: 'long' }).format(updated) : '';
 ---
 <header class="hi">
-  <slot name="breadcrumbs" />
+  <div class="enter" style="--d:0"><slot name="breadcrumbs" /></div>
   {eyebrow && <p class="eyebrow">{eyebrow}</p>}
   <h1 class="enter" style="--d:1">{h1}</h1>
-  <div class="hi__answer enter" style="--d:2" data-direct-answer>
-    <span class="hi__label">{t('ui.answer')}</span>
+  {(updated || readMin || sources > 0) && (
+    <ul class="hi__meta enter" style="--d:2">
+      {readMin && (
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          {t('ui.readTime').replace('{n}', String(readMin))}
+        </li>
+      )}
+      {updated && (
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>
+          {t('ui.updated')}: <time datetime={updated.toISOString().slice(0, 10)}>{fmt}</time>
+        </li>
+      )}
+      {sources > 0 && (
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4M8.5 12h7M8.5 16h5"/></svg>
+          <a href="#src-h">{t('ui.sources')}: {sources}</a>
+        </li>
+      )}
+    </ul>
+  )}
+  <div class="hi__answer enter" style="--d:3" data-direct-answer>
+    <span class="hi__label">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.2 6.6L21 11l-6.8 2.4L12 20l-2.2-6.6L3 11l6.8-2.4z"/></svg>
+      {t('ui.answer')}
+    </span>
     <p>{answer}</p>
   </div>
-  {updated && <p class="hi__meta">{t('ui.updated')}: <time datetime={updated.toISOString().slice(0, 10)}>{fmt}</time></p>}
 </header>
 <style>
-  .hi { padding-block: clamp(28px, 5vw, 56px) 8px; }
-  .hi h1 { font-size: clamp(2rem, 4.8vw, 3.25rem); margin: 12px 0 20px; max-width: 26ch; }
-  .hi__answer { max-width: 68ch; padding: 18px 20px; border-left: 5px solid var(--brand); background: var(--bg-alt); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
-  .hi__label { font: 700 .75rem/1 var(--font-head); letter-spacing: .12em; text-transform: uppercase; color: var(--brand-dark); }
-  .hi__answer p { margin: 6px 0 0; font-size: 1.1rem; line-height: 1.6; }
-  .hi__meta { margin: 14px 0 0; color: var(--text-2); font-size: .875rem; }
+  .hi { padding-block: clamp(24px, 4vw, 48px) 8px; }
+  .hi h1 { font-size: clamp(2.1rem, 4.8vw, 3.4rem); line-height: 1.06; letter-spacing: -0.04em; margin: 18px 0 18px; max-width: 22ch; }
+  .hi__meta { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0 0 24px; padding: 0; }
+  .hi__meta li { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--glass); backdrop-filter: blur(8px); color: var(--text-2); font-size: .84rem; font-weight: 500; }
+  .hi__meta svg { width: 15px; height: 15px; color: var(--accent-text); flex: none; }
+  .hi__meta a { color: inherit; text-decoration: none; }
+  .hi__meta a:hover { color: var(--text); }
+  .hi__answer { position: relative; max-width: 70ch; padding: 22px 24px 22px; border: 1px solid color-mix(in srgb, var(--brand) 30%, var(--border)); border-radius: 20px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 9%, var(--surface)), var(--surface) 60%); box-shadow: var(--shadow); overflow: hidden; }
+  .hi__answer::before { content: ''; position: absolute; left: 0; top: 18px; bottom: 18px; width: 4px; border-radius: 0 4px 4px 0; background: linear-gradient(180deg, var(--brand-light), var(--brand-dark)); }
+  .hi__label { display: inline-flex; align-items: center; gap: 6px; font: 700 .74rem/1 var(--font-head); letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); }
+  .hi__label svg { width: 14px; height: 14px; }
+  .hi__answer p { margin: 10px 0 0; font-size: 1.12rem; line-height: 1.65; color: var(--text); }
 </style>

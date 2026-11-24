@@ -4,23 +4,34 @@ import { useTranslations } from '../i18n/utils';
 interface Props { lang: Lang; items: { title: string; url: string; publisher?: string; year?: number }[] }
 const { lang, items } = Astro.props;
 const t = useTranslations(lang);
+const host = (u: string) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return ''; } };
 ---
 {items.length > 0 && (
   <section class="src" aria-labelledby="src-h">
     <h2 id="src-h">{t('ui.sources')}</h2>
     <ol>
-      {items.map((s) => (
+      {items.map((s, i) => (
         <li>
-          <a href={s.url} rel="noopener nofollow external" target="_blank">{s.title}</a>
-          {(s.publisher || s.year) && <span class="src__meta"> — {[s.publisher, s.year].filter(Boolean).join(', ')}</span>}
+          <span class="src__n" aria-hidden="true">{i + 1}</span>
+          <div class="src__body">
+            <a href={s.url} rel="noopener nofollow external" target="_blank">{s.title}</a>
+            <span class="src__meta">{[host(s.url), s.publisher, s.year].filter(Boolean).join(' · ')}</span>
+          </div>
         </li>
       ))}
     </ol>
   </section>
 )}
 <style>
-  .src { margin-block: 48px; max-width: 74ch; }
-  .src ol { padding-left: 1.4em; font-size: .95rem; }
-  .src li { margin-bottom: 8px; }
-  .src__meta { color: var(--text-2); }
+  .src { margin-block: 56px; max-width: 74ch; }
+  .src h2 { margin-bottom: 20px; }
+  .src ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: none; }
+  .src li { position: relative; display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); transition: border-color .2s, transform .25s var(--ease), box-shadow .25s; }
+  .src li:hover { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); transform: translateX(3px); box-shadow: var(--shadow-sm); }
+  .src__n { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; background: var(--bg-alt); border: 1px solid var(--border); font: 700 .78rem/1 var(--font-mono); color: var(--text-2); }
+  .src__body { display: grid; gap: 3px; min-width: 0; }
+  .src a { font-weight: 600; font-size: .95rem; line-height: 1.45; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
+  .src a::before { content: ''; position: absolute; inset: 0; border-radius: inherit; } /* whole row clickable */
+  .src li:hover a { color: var(--accent-text); }
+  .src__meta { color: var(--text-3); font-size: .82rem; }
 </style>
