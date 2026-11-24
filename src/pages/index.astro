@@ -29,7 +29,8 @@ import Logo from '../components/Logo.astro';
         var saved = localStorage.getItem('lang');
         var nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
         var map = { ru: 'ru', uk: 'uk', en: 'en', es: 'es' };
-        location.replace('/' + (map[saved] || map[nav] || 'en') + '/');
+        // relative on purpose: works at the domain root and under a sub-path (GitHub Pages preview)
+        location.replace((map[saved] || map[nav] || 'en') + '/');
       } catch (e) {}
     </script>
   </body>
